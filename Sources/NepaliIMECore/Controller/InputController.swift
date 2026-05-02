@@ -10,6 +10,11 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     nonisolated(unsafe) private var _state: CompositionState = .idle
     nonisolated(unsafe) private var _panel: CandidateWindow?
     nonisolated(unsafe) private var _lookupToken: UInt64 = 0
+    /// Set whenever a Devanagari candidate is committed; consulted by the
+    /// `.` → `।` (danda) auto-conversion. `nil` means "no recent Nepali
+    /// commit" — keeps period-as-period behavior when typing English.
+    nonisolated(unsafe) private var _lastNepaliCommitTime: Date? = nil
+    private static let dandaConversionWindow: TimeInterval = 1.5
 
     public override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
@@ -67,8 +72,36 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     @MainActor
     private func handleOnMain(event: NSEvent?, client sender: Any?) -> Bool {
         guard let event, event.type == .keyDown else { return false }
+
+        // Idle-state danda auto-conversion: if a `.` arrives soon after a
+        // Devanagari commit (Tab/Space/digit/etc finished a candidate),
+        // swap it for `।` (the Nepali full stop). After the window expires
+        // the period passes through unchanged so users can type English
+        // sentences while leaving the input source active.
+        if !_state.hasBuffer, event.charactersIgnoringModifiers == "." {
+            let mapped = mappedPunctuation(".")
+            if mapped != "." {
+                insertCommitted(mapped, client: sender)
+                return true
+            }
+        }
+
         let action = KeyEventRouter.classify(event: event, hasComposition: _state.hasBuffer)
         return process(action: action, client: sender)
+    }
+
+    /// Returns `।` if `s` is `.` and a Devanagari candidate was committed
+    /// within `dandaConversionWindow`. Clears the timestamp on a successful
+    /// swap so a second `.` immediately after passes through unchanged
+    /// (avoids `..` → `।।`).
+    @MainActor
+    private func mappedPunctuation(_ s: String) -> String {
+        guard s == ".",
+              let last = _lastNepaliCommitTime,
+              Date().timeIntervalSince(last) <= Self.dandaConversionWindow
+        else { return s }
+        _lastNepaliCommitTime = nil
+        return "।"
     }
 
     @MainActor
@@ -99,7 +132,7 @@ public final class InputController: IMKInputController, @unchecked Sendable {
             return true
         case .commitSelectedThenInsert(let s):
             commitSelectedAndReset(client: client)
-            insertCommitted(s, client: client)
+            insertCommitted(mappedPunctuation(s), client: client)
             return true
         case .passThrough:
             return false
@@ -149,6 +182,7 @@ public final class InputController: IMKInputController, @unchecked Sendable {
             let source = chosen.source
             Task { await engine.recordSelection(input: input, output: output, source: source) }
         }
+        _lastNepaliCommitTime = Date()
         _state = .idle
         _panel?.hide()
     }

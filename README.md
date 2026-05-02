@@ -168,6 +168,21 @@ gap-fill for words still missing from the dict).
 | Arrow Up/Down | Move candidate selection |
 | Cmd / Ctrl chord | Pass through unchanged |
 
+## Period-to-danda auto-conversion
+
+If you type `.` immediately after committing a Devanagari candidate
+(within ~1.5 seconds), the period is converted to `।` — the
+Devanagari danda, which serves as the Nepali full stop. Examples:
+
+- `namaste<Space>.` → `नमस्ते ।`
+- `dilip.` → `दिलिप।` (the `.` mid-composition path also converts)
+- `namaste<Space>` … *wait 5 seconds* … `.` → `नमस्ते .` (window
+  expired; period passes through unchanged)
+
+The window is short on purpose: it lets you write Nepali sentences
+naturally without hijacking your `.` when the input source is left
+on while you're typing English.
+
 ## Rule-based candidate fallback
 
 While you type, the marked text in your editor stays as the raw
