@@ -1,0 +1,181 @@
+# NepaliIME starter dictionary
+# Format: roman_input<TAB>devanagari_output<TAB>frequency
+# Frequency: rough relative weight, higher = more common.
+# Multiple roman spellings per output are encouraged (different transliteration habits).
+
+namaste	नमस्ते	1000
+namastey	नमस्ते	900
+namaskar	नमस्कार	800
+dhanyabad	धन्यवाद	1000
+dhanyabaad	धन्यवाद	900
+swagatam	स्वागतम्	500
+namaste_ji	नमस्ते जी	200
+
+ma	म	2000
+mero	मेरो	1500
+hami	हामी	1500
+hamro	हाम्रो	1200
+timi	तिमी	1500
+timro	तिम्रो	1200
+tapai	तपाईं	1500
+tapaiko	तपाईंको	1200
+u	उ	1200
+usko	उसको	1000
+yo	यो	1800
+tyo	त्यो	1800
+
+ghar	घर	1800
+gharma	घरमा	1200
+desh	देश	1200
+nepal	नेपाल	2500
+kathmandu	काठमाडौँ	2000
+kathmando	काठमाडौँ	1800
+pokhara	पोखरा	1500
+lalitpur	ललितपुर	1200
+bhaktapur	भक्तपुर	1200
+
+aama	आमा	2000
+ama	आमा	1800
+buwa	बुवा	2000
+baba	बाबा	1500
+dai	दाइ	1500
+didi	दिदी	1500
+bhai	भाइ	1500
+bahini	बहिनी	1500
+chhora	छोरा	1500
+chhori	छोरी	1500
+
+khana	खाना	2000
+pani	पानी	2200
+chiya	चिया	1800
+dudh	दूध	1500
+bhat	भात	1800
+roti	रोटी	1500
+daal	दाल	1500
+tarkari	तरकारी	1500
+masu	मासु	1300
+machha	माछा	1200
+phalphul	फलफूल	1000
+
+aasha	आशा	1200
+maya	माया	1500
+sapana	सपना	1200
+khusi	खुसी	1500
+dukha	दुख	1500
+samaya	समय	1800
+
+aaja	आज	2000
+hijo	हिजो	1500
+bholi	भोली	1500
+parsi	पर्सि	1000
+abha	अब	1500
+ahile	अहिले	1800
+
+ek	एक	2200
+dui	दुई	2000
+tin	तीन	1800
+char	चार	1800
+panch	पाँच	1800
+chha	छ	1500
+saat	सात	1500
+aath	आठ	1500
+nau	नौ	1500
+das	दस	2000
+sai	सय	1200
+hajaar	हजार	1500
+lakh	लाख	1200
+
+ram	राम	1500
+sita	सीता	1500
+laxmi	लक्ष्मी	1200
+krishna	कृष्ण	1200
+shiva	शिव	1500
+buddha	बुद्ध	1500
+
+ho	हो	2500
+hoina	होइन	2000
+chha	छ	2200
+chhaina	छैन	2000
+thiyo	थियो	1800
+thiena	थिएन	1500
+huncha	हुन्छ	1800
+hudaina	हुदैन	1500
+
+ja	जा	1200
+gayo	गयो	1500
+aau	आउ	1500
+aayo	आयो	1500
+khau	खाउ	1200
+piyou	पिऊ	1000
+ber	बेर	800
+lekh	लेख	1200
+padh	पढ	1500
+sun	सुन	1500
+herna	हेर्न	1300
+bolna	बोल्न	1300
+
+ramro	राम्रो	1800
+naramro	नराम्रो	1500
+ramri	राम्री	1500
+mitho	मिठो	1500
+nayan	नयाँ	1500
+puranо	पुरानो	1300
+thulo	ठूलो	1500
+sano	सानो	1500
+chhito	छिटो	1300
+bistarai	बिस्तारै	1200
+
+raato	रातो	1500
+nilo	नीलो	1500
+hariyo	हरियो	1500
+seto	सेतो	1500
+kalo	कालो	1500
+pahelo	पहेँलो	1300
+
+aakash	आकाश	1500
+suryа	सूर्य	1500
+chandrama	चन्द्रमा	1500
+tara	तारा	1500
+hawa	हावा	1500
+phuul	फूल	1500
+
+bidyalaya	विद्यालय	1500
+school	स्कुल	1800
+shikshak	शिक्षक	1500
+bidyarthi	विद्यार्थी	1500
+kitab	किताब	1800
+kalam	कलम	1500
+kapi	कपी	1500
+
+aspataal	अस्पताल	1500
+doctor	डाक्टर	1500
+nurse	नर्स	1500
+ausadhi	औषधि	1300
+
+bhasha	भाषा	1500
+nepali	नेपाली	2200
+angreji	अङ्ग्रेजी	1500
+hindi	हिन्दी	1500
+
+himal	हिमाल	1500
+sagarmatha	सगरमाथा	1500
+sagar	सागर	1300
+nadi	नदी	1500
+ban	वन	1500
+pahad	पहाड	1500
+terai	तराई	1500
+
+prem	प्रेम	1500
+sansar	संसार	1500
+manchhe	मान्छे	1800
+sathi	साथी	1800
+parivar	परिवार	1800
+gau	गाउँ	1500
+sahar	सहर	1500
+basti	बस्ती	1500
+
+byabaharik	व्यवहारिक	800
+sajilo	सजिलो	1300
+gahro	गाह्रो	1300
+sundar	सुन्दर	1500
+prakriti	प्रकृति	1500

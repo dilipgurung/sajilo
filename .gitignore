@@ -1,0 +1,12 @@
+.DS_Store
+.build/
+.swiftpm/
+Packages/
+*.xcodeproj
+*.xcworkspace
+build/
+DerivedData/
+*.o
+*.dylib
+NepaliIME.app/
+dist/

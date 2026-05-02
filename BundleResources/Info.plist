@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>NepaliIME</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.gurungdilip.inputmethod.NepaliIME</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>NepaliIME</string>
+    <key>CFBundleDisplayName</key>
+    <string>Nepali IME</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>LSBackgroundOnly</key>
+    <true/>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright © 2026. Personal use.</string>
+
+    <key>InputMethodConnectionName</key>
+    <string>com_gurungdilip_inputmethod_NepaliIME_Connection</string>
+    <key>InputMethodServerControllerClass</key>
+    <string>NepaliIMEController</string>
+
+    <key>tsInputMethodCharacterRepertoireKey</key>
+    <array>
+        <string>Deva</string>
+    </array>
+
+    <key>ComponentInputModeDict</key>
+    <dict>
+        <key>tsInputModeListKey</key>
+        <dict>
+            <key>com.gurungdilip.inputmethod.NepaliIME.Nepali</key>
+            <dict>
+                <key>TISInputSourceID</key>
+                <string>com.gurungdilip.inputmethod.NepaliIME.Nepali</string>
+                <key>TISIntendedLanguage</key>
+                <string>ne</string>
+                <key>tsInputModeAlternateMenuIconFileKey</key>
+                <string>MenuIcon.tiff</string>
+                <key>tsInputModeDefaultStateKey</key>
+                <string>Enabled</string>
+                <key>tsInputModeIsVisibleKey</key>
+                <true/>
+                <key>tsInputModeMenuIconFileKey</key>
+                <string>MenuIcon.tiff</string>
+                <key>tsInputModePaletteIconFileKey</key>
+                <string>MenuIcon.tiff</string>
+                <key>tsInputModePrimaryInScriptKey</key>
+                <true/>
+                <key>tsInputModeScriptKey</key>
+                <string>Deva</string>
+                <key>TISIconIsTemplate</key>
+                <true/>
+            </dict>
+        </dict>
+        <key>tsVisibleInputModeOrderedArrayKey</key>
+        <array>
+            <string>com.gurungdilip.inputmethod.NepaliIME.Nepali</string>
+        </array>
+    </dict>
+</dict>
+</plist>
