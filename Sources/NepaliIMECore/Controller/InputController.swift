@@ -10,27 +10,6 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     nonisolated(unsafe) private var _state: CompositionState = .idle
     nonisolated(unsafe) private var _panel: CandidateWindow?
     nonisolated(unsafe) private var _lookupToken: UInt64 = 0
-    /// Counts characters typed since the most recent Devanagari commit,
-    /// used by the `.` → `।` (danda) auto-conversion. Semantics:
-    ///   - `nil`  — no recent Nepali commit (or window has expired).
-    ///             `.` is left as-is.
-    ///   - `0`    — the caret is sitting immediately after the committed
-    ///             Devanagari word. `.` converts to `।`.
-    ///   - `1`    — exactly one space has been typed after the word.
-    ///             `.` still converts to `।`.
-    ///   - `>1`   — never represented; transitions to `nil` (out of
-    ///             range, danda no longer applies).
-    /// Any non-space character typed in idle, or any non-period punctuation
-    /// inserted via the commit-then-insert path, drops the counter back
-    /// to `nil`.
-    nonisolated(unsafe) private var _charsSinceNepaliCommit: Int? = nil
-
-    /// Snapshot of `_charsSinceNepaliCommit` taken at the moment the
-    /// danda was auto-inserted. If the next idle keystroke is a
-    /// backspace (assumed to delete that danda), we restore the counter
-    /// from this snapshot so a re-typed `.` converts again. Cleared by
-    /// any other idle action.
-    nonisolated(unsafe) private var _preDandaCounter: Int? = nil
 
     public override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
@@ -89,68 +68,67 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     private func handleOnMain(event: NSEvent?, client sender: Any?) -> Bool {
         guard let event, event.type == .keyDown else { return false }
 
-        // Idle-state position-based bookkeeping for the period-to-danda
-        // auto-conversion. Only triggered when there's no active
-        // composition; mid-composition events go through KeyEventRouter
-        // and are accounted for by the commit paths in `process(...)`.
-        if !_state.hasBuffer {
-            let chars = event.charactersIgnoringModifiers ?? ""
-            if chars == "." {
-                // Period right after (or one space past) a Devanagari
-                // word becomes the danda.
-                let mapped = mappedPunctuation(".")
-                if mapped != "." {
-                    insertCommitted(mapped, client: sender)
-                    return true
-                }
-                // Period passed through literally — discard the
-                // pre-danda snapshot (we never inserted a danda).
-                _preDandaCounter = nil
-            } else if chars == " " {
-                // Track the one-space window: 0 → 1, 1 → out of range.
-                if let n = _charsSinceNepaliCommit {
-                    _charsSinceNepaliCommit = (n == 0) ? 1 : nil
-                }
-                _preDandaCounter = nil
-                // Pass the space through to the document below.
-            } else if chars == "\u{8}" || chars == "\u{7F}" {
-                // Idle backspace. If we just inserted an auto-danda,
-                // assume it's the character about to be deleted and
-                // restore the counter so a retyped `.` reconverts.
-                // System still handles the actual deletion.
-                if let pre = _preDandaCounter {
-                    _charsSinceNepaliCommit = pre
-                    _preDandaCounter = nil
-                }
-            } else {
-                // Any other idle-state key (arrows, punctuation, letter
-                // that starts a new composition, etc.) ends the danda
-                // eligibility window — the caret is no longer "next to"
-                // the previously-committed word.
-                _charsSinceNepaliCommit = nil
-                _preDandaCounter = nil
-            }
+        // Idle-state period-to-danda auto-conversion. The decision is
+        // entirely positional: we look at the document directly to see
+        // whether the caret is sitting at the end of a Devanagari word
+        // (or one space past it). No commit-history tracking required —
+        // works for words pasted in or typed in earlier sessions, not
+        // just freshly-committed ones.
+        if !_state.hasBuffer,
+           event.charactersIgnoringModifiers == ".",
+           cursorIsAtEndOfDevanagariWord(client: sender) {
+            insertCommitted("।", client: sender)
+            return true
         }
 
         let action = KeyEventRouter.classify(event: event, hasComposition: _state.hasBuffer)
         return process(action: action, client: sender)
     }
 
-    /// Returns `।` if `s` is `.` and the caret is at most one space past
-    /// the most recently committed Devanagari word (counter ≤ 1).
-    /// Snapshots the counter into `_preDandaCounter` and clears the live
-    /// counter so a second `.` typed immediately after stays as `.`
-    /// (avoids `..` → `।।`). The snapshot is restored on the next idle
-    /// backspace so a delete-then-retype `.` re-converts.
+    /// Reads the 1–2 characters immediately preceding the caret from the
+    /// client document and returns true if `.` typed here should become
+    /// the danda `।`. The rule:
+    ///   - char[-1] is in the Devanagari block AND is not itself a danda → fire
+    ///   - char[-1] is whitespace AND char[-2] is Devanagari (and not a danda) → fire
+    ///   - otherwise → don't fire
+    ///
+    /// Excluding the danda from the "Devanagari" predicate prevents
+    /// `..` from becoming `।।` (the second `.` sees the just-inserted
+    /// danda before the caret and falls through as a literal period).
+    /// Returns false if the client doesn't support `selectedRange`/
+    /// `string(from:actualRange:)` (Electron, some Java apps), so periods
+    /// pass through untouched in those clients.
     @MainActor
-    private func mappedPunctuation(_ s: String) -> String {
-        guard s == ".",
-              let n = _charsSinceNepaliCommit,
-              n <= 1
-        else { return s }
-        _preDandaCounter = n
-        _charsSinceNepaliCommit = nil
-        return "।"
+    private func cursorIsAtEndOfDevanagariWord(client: Any?) -> Bool {
+        guard let textInput = client as? IMKTextInput else { return false }
+        let sel = textInput.selectedRange()
+        guard sel.location != NSNotFound, sel.location > 0 else { return false }
+
+        let start = max(0, sel.location - 2)
+        let len   = sel.location - start
+        var actual = NSRange(location: 0, length: 0)
+        guard let s = textInput.string(
+            from: NSRange(location: start, length: len),
+            actualRange: &actual
+        ) else { return false }
+
+        let chars = Array(s)
+        guard let last = chars.last else { return false }
+
+        if Self.isDevanagariNonDanda(last) { return true }
+        if last.isWhitespace, chars.count >= 2,
+           Self.isDevanagariNonDanda(chars[chars.count - 2]) {
+            return true
+        }
+        return false
+    }
+
+    /// True for any character in the Devanagari block U+0900–U+097F
+    /// EXCEPT the danda U+0964 itself (so `..` doesn't become `।।`).
+    private static func isDevanagariNonDanda(_ c: Character) -> Bool {
+        guard let scalar = c.unicodeScalars.first else { return false }
+        let v = scalar.value
+        return (0x0900...0x097F).contains(v) && v != 0x0964
     }
 
     @MainActor
@@ -164,18 +142,9 @@ public final class InputController: IMKInputController, @unchecked Sendable {
             return true
         case .commitSelected:
             commitSelectedAndReset(client: client)
-            // Space is about to be inserted by the system after we
-            // return false. If the just-committed candidate was
-            // Devanagari (counter just got set to 0), bump to 1 so
-            // the upcoming space counts toward the one-space window.
-            if _charsSinceNepaliCommit == 0 {
-                _charsSinceNepaliCommit = 1
-            }
             return false
         case .commitSelectedAndEat:
             commitSelectedAndReset(client: client)
-            // Return is swallowed — caret is right after the word, no
-            // space to count. Counter stays at 0 (set by commit path).
             return true
         case .cancel:
             clearMarkedText(client: client)
@@ -190,16 +159,15 @@ public final class InputController: IMKInputController, @unchecked Sendable {
             return true
         case .commitSelectedThenInsert(let s):
             commitSelectedAndReset(client: client)
-            let toInsert = mappedPunctuation(s)
-            insertCommitted(toInsert, client: client)
-            // For non-period punctuation (`,`, `!`, `?`, ...), end the
-            // danda window — the caret is no longer "next to" the word.
-            // For period: mappedPunctuation already cleared the live
-            // counter and stashed the pre-danda snapshot so a backspace
-            // can recover. Don't disturb that snapshot here.
-            if toInsert == s {
-                _charsSinceNepaliCommit = nil
-                _preDandaCounter = nil
+            // After committing, look at the document to decide whether
+            // the inserted punctuation should be danda or literal. Works
+            // uniformly for the candidate-commit path (caret lands after
+            // Devanagari → danda) and the raw-fallback path (caret lands
+            // after Latin → literal).
+            if s == "." && cursorIsAtEndOfDevanagariWord(client: client) {
+                insertCommitted("।", client: client)
+            } else {
+                insertCommitted(s, client: client)
             }
             return true
         case .passThrough:
@@ -250,10 +218,6 @@ public final class InputController: IMKInputController, @unchecked Sendable {
             let source = chosen.source
             Task { await engine.recordSelection(input: input, output: output, source: source) }
         }
-        // Caret is now sitting right after a Devanagari word — open the
-        // danda eligibility window. Process step (Space) may bump to 1.
-        _charsSinceNepaliCommit = 0
-        _preDandaCounter = nil
         _state = .idle
         _panel?.hide()
     }
@@ -267,9 +231,6 @@ public final class InputController: IMKInputController, @unchecked Sendable {
             insertCommitted(buffer, client: client)
             _state = .idle
             _panel?.hide()
-            // Raw Roman commit — not Devanagari, so no danda window.
-            _charsSinceNepaliCommit = nil
-            _preDandaCounter = nil
         }
     }
 
@@ -279,8 +240,6 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         insertCommitted(buffer, client: client)
         _state = .idle
         _panel?.hide()
-        _charsSinceNepaliCommit = nil
-        _preDandaCounter = nil
     }
 
     @MainActor

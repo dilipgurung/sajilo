@@ -170,26 +170,33 @@ gap-fill for words still missing from the dict).
 
 ## Period-to-danda auto-conversion
 
-When the caret is sitting **right after** a Devanagari word — or at
-**most one space past it** — typing `.` is converted to `।`, the
-Devanagari danda used as the Nepali full stop. Examples:
+When the caret is sitting **right after** a Devanagari character — or
+at **most one space past it** — typing `.` is converted to `।`, the
+Devanagari danda used as the Nepali full stop. The decision is made
+by reading the document directly, so it works for *any* Devanagari
+in the editor — freshly typed, typed earlier in the session, or even
+pasted from elsewhere.
+
+Examples:
 
 - `dilip.` → `दिलिप।` (the `.` mid-composition path also converts)
 - `namaste<Space>.` → `नमस्ते ।` (one space — still in range)
 - `namaste<Space><Space>.` → `नमस्ते  .` (two spaces — out of range,
   period passes through unchanged)
-- `namaste<Space>hi.` → `नमस्ते hi.` (typed a non-space char after
-  the word; the danda window closed)
+- Click at end of an existing `नमस्ते` in the document, type `.` →
+  `नमस्ते।` (no need for a recent commit)
+- `namaste<Space>hi.` → `नमस्ते hi.` (caret is after Latin, period
+  stays literal)
 
-There's no time component — what matters is position. So you can pause
-to think between typing the word and typing the period; the danda will
-still fire as long as you haven't moved the caret or typed anything
-that takes you further than one space past the word.
-
-If the auto-danda was wrong and you backspace it, retyping `.` will
-convert again (the IME remembers the position the danda came from).
 A second `.` typed *immediately* after an auto-danda is left literal
-so `..` becomes `।.` rather than `।।`.
+(`..` becomes `।.` rather than `।।`) — the rule treats a danda before
+the caret as already-terminated and won't double-fire. If you backspace
+the danda and retype `.`, it converts again because the rule re-reads
+the document.
+
+In a few apps that don't fully implement the IMK text-reading APIs
+(Electron, some Java), the IME can't see what's around the caret and
+periods always pass through literally — no auto-danda there.
 
 ## Rule-based candidate fallback
 
