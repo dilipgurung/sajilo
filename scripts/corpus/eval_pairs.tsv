@@ -1,0 +1,101 @@
+# Hand-curated regression set for the corpus pipeline.
+# Format: roman_input<TAB>devanagari_expected
+# Lines starting with # are comments.
+#
+# Goal: catch Hindi-vs-Nepali divergence regressions. Every pair here
+# should be present in the generated system_dict.tsv (anywhere in the
+# candidate list for that roman input — not necessarily top-1).
+
+# Postpositions / particles (Nepali-specific — Hindi has है/नहीं instead)
+cha	छ
+chaina	छैन
+ho	हो
+hoina	होइन
+haina	होइन
+
+# Common verb forms
+garchu	गर्छु
+garnu	गर्नु
+garnus	गर्नुस्
+khane	खाने
+khayeko	खाएको
+jane	जाने
+gayeko	गएको
+
+# Schwa-preserving variants (Nepali typing style)
+mana	मन
+rama	राम
+nama	नाम
+
+# Schwa-deleting variants (Hindi-influenced typing — should also work)
+man	मन
+ram	राम
+nam	नाम
+
+# Conjuncts
+chetra	क्षेत्र
+gyan	ज्ञान
+gyaan	ज्ञान
+kshama	क्षमा
+
+# Pronouns
+ma	म
+hami	हामी
+timi	तिमी
+tapai	तपाईं
+tapain	तपाईं
+mero	मेरो
+hamro	हाम्रो
+timro	तिम्रो
+
+# Family
+aama	आमा
+ama	आमा
+buwa	बुवा
+buba	बुवा
+dai	दाइ
+didi	दिदी
+bhai	भाइ
+bahini	बहिनी
+
+# Numbers (1–10)
+ek	एक
+dui	दुई
+tin	तीन
+char	चार
+panch	पाँच
+pancha	पाँच
+chha	छ
+sat	सात
+aath	आठ
+nau	नौ
+das	दश
+
+# Days / time
+aaja	आज
+bholi	भोलि
+hijo	हिजो
+
+# Places
+nepal	नेपाल
+kathmandu	काठमाडौँ
+pokhara	पोखरा
+
+# Food
+bhat	भात
+daal	दाल
+tarkari	तरकारी
+chiya	चिया
+pani	पानी
+dudh	दूध
+
+# Adjectives
+ramro	राम्रो
+naramro	नराम्रो
+thulo	ठूलो
+sano	सानो
+
+# Greetings
+namaste	नमस्ते
+namaskar	नमस्कार
+dhanyabad	धन्यवाद

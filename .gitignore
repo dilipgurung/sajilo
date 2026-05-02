@@ -10,3 +10,7 @@ DerivedData/
 *.dylib
 NepaliIME.app/
 dist/
+
+# Corpus pipeline (scripts/corpus/) — large intermediates, regenerable
+work/
+.venv-corpus/

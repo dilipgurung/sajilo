@@ -9,7 +9,9 @@ based on frequency + recency.
 
 > **Status:** v0.1 scaffold. Engine, persistence, and IMK plumbing are
 > implemented and unit-tested (47/47 green). Ships with a ~150-word starter
-> dictionary; a real corpus needs to be sourced before this is useful day-to-day.
+> dictionary; a corpus build pipeline (`scripts/corpus/`) regenerates a real
+> ~30k-headword dictionary from AI4Bharat's Aksharantar dataset ranked by
+> Nepali Wikipedia frequency. Run `./scripts/corpus/run_all.sh` to build it.
 
 ---
 
@@ -40,6 +42,35 @@ If you only want the bundle without installing it:
 ./scripts/bundle.sh
 # → dist/NepaliIME.app
 ```
+
+## Build the real dictionary (recommended after first install)
+
+The default bundle ships with only ~150 starter words. To get a real
+~30k-headword dictionary built from AI4Bharat's Aksharantar dataset
+ranked by Nepali Wikipedia frequency:
+
+```bash
+# Smoke test first (~2 min, builds a few-hundred-word dict)
+./scripts/corpus/run_all.sh --top 500
+
+# Full build (~10 min, ~700MB cache under work/ + ~/.cache/huggingface/)
+./scripts/corpus/run_all.sh
+
+# Rebuild + reinstall the IME with the new dictionary
+./scripts/install.sh
+```
+
+Individual steps (each is idempotent and cached under `work/corpus/`):
+
+```bash
+.venv-corpus/bin/python scripts/corpus/fetch_wiki_freq.py    # → frequencies.tsv
+.venv-corpus/bin/python scripts/corpus/fetch_aksharantar.py  # → aksharantar_nep.tsv
+.venv-corpus/bin/python scripts/corpus/build_dict.py         # → BundleResources/system_dict.tsv
+.venv-corpus/bin/python scripts/corpus/eval.py               # regression check
+```
+
+See [`scripts/corpus/README.md`](scripts/corpus/README.md) for full details
+(data sources, licensing, eval set, coverage gap recovery).
 
 ## Composition behaviour
 
@@ -75,6 +106,8 @@ BundleResources/           # Info.plist, system_dict.tsv, icons, lproj strings
 ├── en.lproj/              #   localized display names
 └── ne.lproj/              #   Devanagari display names
 scripts/                   # bundle.sh, install.sh, make_icon.swift
+└── corpus/                #   Python pipeline to regenerate system_dict.tsv
+                           #   from Aksharantar + Nepali Wikipedia
 ```
 
 Key design choices:
@@ -95,6 +128,10 @@ Key design choices:
   SwiftUI candidate list. `IMKCandidates` was rejected as too restrictive.
 
 ## Dictionaries
+
+> To regenerate the bundled dictionary from real corpora (Aksharantar +
+> Nepali Wikipedia), see [`scripts/corpus/README.md`](scripts/corpus/README.md).
+> Output drops into `BundleResources/system_dict.tsv` in the format below.
 
 ### System dictionary (bundled, read-only)
 
@@ -176,8 +213,10 @@ primary diagnostic channel.
 
 ## Known limitations / not yet implemented
 
-- Starter dictionary is ~150 words. Needs a real 20–40k corpus to be
-  practically useful.
+- Starter dictionary is ~150 words. Run `./scripts/corpus/run_all.sh` to
+  build a ~30k-headword replacement from Aksharantar + Wikipedia
+  (~10 min, ~700MB cache). Pipeline is run-on-demand; the generated
+  dictionary is committed alongside the source TSV.
 - The Ctrl+Space input-source switcher and the menu-bar tray share a
   single icon (`tsInputModeMenuIconFileKey`); per-surface variations are
   not honoured by macOS for third-party IMEs. We ship the colored flag
