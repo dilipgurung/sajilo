@@ -154,4 +154,4 @@ primary diagnostic channel.
 
 ## License
 
-Personal project, all rights reserved.
+[MIT](LICENSE) © 2026 Dilip Gurung
