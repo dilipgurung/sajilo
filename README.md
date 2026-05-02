@@ -198,6 +198,32 @@ shortcuts) and the IME records the selection in the learner, so
 the next time you type the same word it appears as a learned
 candidate ahead of the rule one.
 
+### Ambiguous Roman → multiple rule candidates
+
+Roman is genuinely ambiguous against Devanagari, so the rule layer
+emits up to 4 alternative parses for inputs where the grammar can
+plausibly read the same letters more than one way. The default
+(longest-match) reading ranks first; the alternatives appear after
+it and you pick the one you meant.
+
+Two branching rules:
+
+- **Single `a` after a consonant before more input** can be either
+  the inherent schwa (default) or the long-aa matra (alternative):
+  - `gai` → गै (ai diphthong, default) | गाइ (ga + i, the cow word)
+  - `gaee` → गई (ga + ī, default) | गाई (gā + ī)
+  - `ram` → रम (default) | राम (long-aa, the name) | रां (anusvara)
+
+- **Trailing `n` or `m` at end of buffer after a vowel matra** can be
+  either the consonant with inherent schwa (default) or anusvara
+  (`ं`) on the previous syllable:
+  - `gain` → गैन (default) | गैं (anusvara)
+  - `naam` → नाम (default) | नां (anusvara)
+
+If you commit one of the alternatives, the learner remembers your
+choice, so next time the same Roman input is typed your preferred
+reading is at the top of the list.
+
 ### Adding a word the IME doesn't know
 
 Three paths depending on how permanent the addition should be:

@@ -1,32 +1,39 @@
 import Foundation
 
-/// Adapter that exposes the rule-based transliterator as a `DictionarySource`,
-/// so SuggestionEngine can pull a fallback candidate without any new protocol.
+/// Adapter that exposes the rule-based transliterator as a `DictionarySource`.
 ///
-/// Returns at most one candidate per lookup. baseFrequency is 0 so the ranker
-/// always sorts dictionary matches above this fallback. The engine is also
-/// expected to dedupe by output string (suppress this candidate when the dict
-/// already produced the same Devanagari).
+/// Returns one `Candidate` per alternative parse the transliterator
+/// produces (up to `maxAlternatives`, default 4). All candidates have
+/// `baseFrequency = 0` so SuggestionEngine ranks them below any dict
+/// match; the engine also dedupes by output string before appending,
+/// so a rule reading equal to a dict entry is suppressed.
 public struct RuleDictionarySource: DictionarySource {
     private let transliterator: RuleTransliterator
+    private let maxAlternatives: Int
 
-    public init(transliterator: RuleTransliterator = RuleTransliterator()) {
+    public init(
+        transliterator: RuleTransliterator = RuleTransliterator(),
+        maxAlternatives: Int = 4
+    ) {
         self.transliterator = transliterator
+        self.maxAlternatives = maxAlternatives
     }
 
     public func candidates(for prefix: String) -> [Candidate] {
-        let deva = transliterator.transliterate(prefix)
-        // Skip when transliteration is empty or didn't change anything (e.g.
-        // pure-digit input). Without this guard the candidate list would
-        // contain a useless echo of the user's Roman buffer.
-        guard !deva.isEmpty, deva != prefix else { return [] }
-        return [
-            Candidate(
-                output: deva,
+        let parses = transliterator.transliterate(prefix, maxAlternatives: maxAlternatives)
+        var seen = Set<String>()
+        var out: [Candidate] = []
+        for parse in parses {
+            // Skip empty / pure-echo (digits-only inputs etc.) and dupes.
+            guard !parse.isEmpty, parse != prefix, !seen.contains(parse) else { continue }
+            seen.insert(parse)
+            out.append(Candidate(
+                output: parse,
                 romanInput: prefix,
                 baseFrequency: 0,
                 source: .rule
-            )
-        ]
+            ))
+        }
+        return out
     }
 }

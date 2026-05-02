@@ -35,20 +35,21 @@ final class SuggestionEngineRuleFallbackTests: XCTestCase {
     }
 
     func testRuleFallbackSuppressedWhenDictAlreadyHasSameOutput() async {
-        // Rule transliterator produces "नम" for input "nam"; dict also has "नम".
-        // Engine should dedupe — only one "नम" candidate, and it should be the
-        // dict one (so .system, not .rule).
+        // Rule transliterator produces "दिलिप" for "dilip" (single parse,
+        // no branching); dict also has "दिलिप". Engine dedupes by output
+        // string — only one दिलिप candidate, and it must be the dict one
+        // (.system, not .rule).
         var trie = Trie()
         trie.insert(
-            key: "nam",
-            value: Candidate(output: "नम", romanInput: "nam", baseFrequency: 50, source: .system)
+            key: "dilip",
+            value: Candidate(output: "दिलिप", romanInput: "dilip", baseFrequency: 50, source: .system)
         )
         let engine = SuggestionEngine(
             dictionary: TrieDictionary(trie: trie),
             learner: NoopLearner(),
             fallback: RuleDictionarySource()
         )
-        let results = await engine.candidates(for: "nam")
+        let results = await engine.candidates(for: "dilip")
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results.first?.source, .system)
     }
