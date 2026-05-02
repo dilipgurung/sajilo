@@ -25,7 +25,11 @@ public final class IMEServices {
                 cacheURL: Paths.systemDictCache
             )
             let learner = try UserLearner(databaseURL: Paths.userLearnerDatabase)
-            let engine = SuggestionEngine(dictionary: dictMgr, learner: learner)
+            let engine = SuggestionEngine(
+                dictionary: dictMgr,
+                learner: learner,
+                fallback: RuleDictionarySource()
+            )
             let watcher = UserDictionaryWatcher(url: userDict) { [weak dictMgr] in
                 do { try dictMgr?.reloadUserDictionary() } catch {
                     Log.dict.error("reloadUserDictionary failed: \(error.localizedDescription, privacy: .public)")

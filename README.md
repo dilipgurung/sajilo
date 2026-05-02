@@ -8,11 +8,13 @@ Space. The IME learns from your selections and reorders future candidates
 based on frequency + recency.
 
 > **Status:** v0.1. Engine, persistence, and IMK plumbing are
-> implemented and unit-tested (47/47 green). Ships with a ~150-word
+> implemented and unit-tested (64/64 green). Ships with a ~150-word
 > starter dictionary; a corpus build pipeline (`scripts/corpus/`) builds
 > a real ~30k-headword dictionary from AI4Bharat's Aksharantar dataset
 > ranked by Nepali Wikipedia frequency, with a hand-curated lemma seed
-> (eval: 68/68). A per-user `.pkg` installer (`scripts/make_pkg.sh`)
+> (eval: 68/68). A rule-based transliterator covers novel words not in
+> the dictionary by rendering Roman → Devanagari live as you type
+> (`Dilip` → दिलिप). A per-user `.pkg` installer (`scripts/make_pkg.sh`)
 > can be shared with non-developers — currently unsigned (Tier 1), so
 > recipients right-click → Open the first time.
 
@@ -166,12 +168,61 @@ gap-fill for words still missing from the dict).
 | Arrow Up/Down | Move candidate selection |
 | Cmd / Ctrl chord | Pass through unchanged |
 
+## Live transliteration (rule-based fallback)
+
+The marked text shown in your editor while composing is the **live
+Devanagari transliteration** of your Roman buffer, not the raw
+Roman characters. Type `D` and you see द; type `Di` and it becomes
+दि; type `Dilip` and it becomes दिलिप. This works even for words
+not in the dictionary — proper names, neologisms, anything novel.
+
+The candidate window still shows dictionary matches first; the
+rule-transliterated result is appended **last** so dictionary
+suggestions stay at predictable positions for muscle-memory typing.
+When no dictionary entry exists, the rule candidate is the only one
+shown — pick it with Space and the IME records the selection in the
+learner, so the next time you type the same word it appears as a
+learned candidate instead.
+
+### Romanization scheme cheat sheet
+
+Case-insensitive — `Dilip` and `dilip` produce the same output.
+Default is dental for `t/d/n` (use the dictionary for retroflex words).
+
+| Roman | Devanagari | Roman | Devanagari |
+|---|---|---|---|
+| `a` | अ | `aa` / `A` | आ |
+| `i` | इ | `ee` / `ii` | ई |
+| `u` | उ | `oo` / `uu` | ऊ |
+| `e` | ए | `ai` | ऐ |
+| `o` | ओ | `au` | औ |
+| `k` | क | `kh` | ख |
+| `g` | ग | `gh` | घ |
+| `ch` | च | `chh` | छ |
+| `j` | ज | `jh` | झ |
+| `t` | त | `th` | थ |
+| `d` | द | `dh` | ध |
+| `n` | न | `p` | प |
+| `ph` / `f` | फ | `b` | ब |
+| `bh` | भ | `m` | म |
+| `y` | य | `r` | र |
+| `l` | ल | `v` / `w` | व |
+| `s` | स | `sh` | श |
+| `h` | ह | `ksh` | क्ष |
+| `gy` | ज्ञ | `shr` | श्र |
+
+Adjacent consonants automatically get a halant inserted between
+them (`gar` → गर, `garchha` → गर्छ). Final consonant keeps its
+inherent schwa (Nepali convention — `dilip` → दिलिप, not दिलिप्).
+Digits and punctuation pass through unchanged (`dilip3` → दिलिप3).
+
 ## Architecture
 
 ```
 Sources/NepaliIME/         # Thin executable: IMKServer bootstrap
 Sources/NepaliIMECore/     # Library: all logic, unit-testable
 ├── Engine/                # Trie + Ranker + SuggestionEngine actor
+│                          # + RuleTransliterator + RuleDictionarySource
 ├── Persistence/           # DictionaryManager, UserLearner (GRDB), Watcher
 ├── Controller/            # IMKInputController, state machine, key router
 ├── UI/                    # NSPanel + SwiftUI candidate window
@@ -284,7 +335,8 @@ its icon cache is otherwise sticky.
 swift test
 ```
 
-47 tests across `Trie`, `Ranker`, `SuggestionEngine`, `DictionaryManager`,
+64 tests across `Trie`, `Ranker`, `SuggestionEngine`,
+`SuggestionEngineRuleFallback`, `RuleTransliterator`, `DictionaryManager`,
 `UserLearner`, `KeyEventRouter`, `PanelPositioner`. The IMK controller and
 the NSPanel are not unit-tested — IME UX is verified manually in real apps.
 

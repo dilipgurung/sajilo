@@ -10,6 +10,7 @@ public struct Candidate: Sendable, Hashable, Codable {
         case system
         case user
         case learned
+        case rule
     }
 
     public init(output: String, romanInput: String, baseFrequency: Int, source: Source) {

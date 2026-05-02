@@ -10,6 +10,7 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     nonisolated(unsafe) private var _state: CompositionState = .idle
     nonisolated(unsafe) private var _panel: CandidateWindow?
     nonisolated(unsafe) private var _lookupToken: UInt64 = 0
+    private let transliterator = RuleTransliterator()
 
     public override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
@@ -208,8 +209,13 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     @MainActor
     private func showMarkedText(buffer: String, client: Any?) {
         guard let textInput = client as? IMKTextInput else { return }
+        // Live preview: render the in-progress Roman buffer as Devanagari
+        // via the rule grammar. Falls back to the raw Roman buffer if the
+        // transliterator produced nothing usable (empty / unchanged).
+        let preview = transliterator.transliterate(buffer)
+        let displayed = (preview.isEmpty || preview == buffer) ? buffer : preview
         let attributed = NSAttributedString(
-            string: buffer,
+            string: displayed,
             attributes: [
                 .underlineStyle: NSUnderlineStyle.single.rawValue,
                 .underlineColor: NSColor.labelColor,
@@ -218,7 +224,7 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         )
         textInput.setMarkedText(
             attributed,
-            selectionRange: NSRange(location: buffer.count, length: 0),
+            selectionRange: NSRange(location: displayed.count, length: 0),
             replacementRange: NSRange(location: NSNotFound, length: 0)
         )
     }
