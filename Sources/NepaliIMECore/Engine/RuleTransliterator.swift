@@ -229,6 +229,14 @@ public struct RuleTransliterator: Sendable {
         "shr": "श्र",
         "chh": "छ",
 
+        // Retroflex sigils (`` `t ``, etc.) — the backtick lifts the next
+        // consonant from dental to retroflex. Allows ट/ठ/ड/ढ/ण/ष to be
+        // typed inline without changing case-insensitivity. Backtick was
+        // chosen over `.` because period is reserved for sentence-end +
+        // auto-danda.
+        "`th": "ठ",
+        "`dh": "ढ",
+
         // 2-char aspirates / common digraphs.
         "kh": "ख",
         "gh": "घ",
@@ -242,6 +250,12 @@ public struct RuleTransliterator: Sendable {
         "bh": "भ",
         "sh": "श",
         "gy": "ज्ञ",
+
+        // 2-char retroflex sigils.
+        "`t": "ट",
+        "`d": "ड",
+        "`n": "ण",
+        "`s": "ष",
 
         // Single-char consonants.
         "k": "क", "g": "ग", "j": "ज",

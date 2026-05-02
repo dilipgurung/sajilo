@@ -197,4 +197,46 @@ final class RuleTransliteratorTests: XCTestCase {
         let parses = t.transliterate("gain", maxAlternatives: 2)
         XCTAssertLessThanOrEqual(parses.count, 2)
     }
+
+    // MARK: - Retroflex sigils (backtick)
+
+    func testRetroflexSigilSingleConsonants() {
+        // `` `t/`d/`n/`s `` map to ट/ड/ण/ष.
+        XCTAssertEqual(first("`t"), "ट")
+        XCTAssertEqual(first("`d"), "ड")
+        XCTAssertEqual(first("`n"), "ण")
+        XCTAssertEqual(first("`s"), "ष")
+    }
+
+    func testRetroflexSigilAspirated() {
+        // 3-char `` `th/`dh `` map to ठ/ढ.
+        XCTAssertEqual(first("`th"), "ठ")
+        XCTAssertEqual(first("`dh"), "ढ")
+    }
+
+    func testRetroflexInsideWord() {
+        // mi`thaai → मिठाई-ish: m + i-matra + retroflex-tha + aa-matra + i.
+        // Default longest-match parse should use the retroflex `th.
+        let parses = all("mi`thaai")
+        XCTAssertTrue(parses.contains("मिठाइ"),
+                      "expected मिठाइ in \(parses)")
+    }
+
+    func testRetroflexAtWordStart() {
+        // `taa = retroflex t + long aa = टा (e.g. ṭā in टीका prefix).
+        XCTAssertEqual(first("`taa"), "टा")
+    }
+
+    func testRetroflexClusterTriggersHalant() {
+        // `t followed by another consonant should still get a halant
+        // inserted (general consonant-cluster rule, no special-casing).
+        XCTAssertEqual(first("`tk"), "ट्क")
+    }
+
+    func testBacktickAloneFallsThrough() {
+        // A lone backtick with no following consonant token isn't a
+        // valid sigil — passes through verbatim so the user can recover.
+        XCTAssertEqual(first("`"), "`")
+        XCTAssertEqual(first("`x"), "`x")
+    }
 }

@@ -279,7 +279,8 @@ corpus-mined inflected variants.
 ### Romanization scheme cheat sheet
 
 Case-insensitive — `Dilip` and `dilip` produce the same output.
-Default is dental for `t/d/n` (use the dictionary for retroflex words).
+Default `t/d/n` is dental; use the backtick sigil for retroflex
+(see below) or pick a retroflex dict candidate.
 
 | Roman | Devanagari | Roman | Devanagari |
 |---|---|---|---|
@@ -292,9 +293,9 @@ Default is dental for `t/d/n` (use the dictionary for retroflex words).
 | `g` | ग | `gh` | घ |
 | `ch` | च | `chh` | छ |
 | `j` | ज | `jh` | झ |
-| `t` | त | `th` | थ |
-| `d` | द | `dh` | ध |
-| `n` | न | `p` | प |
+| `t` | त (dental) | `th` | थ |
+| `d` | द (dental) | `dh` | ध |
+| `n` | न (dental) | `p` | प |
 | `ph` / `f` | फ | `b` | ब |
 | `bh` | भ | `m` | म |
 | `y` | य | `r` | र |
@@ -302,6 +303,27 @@ Default is dental for `t/d/n` (use the dictionary for retroflex words).
 | `s` | स | `sh` | श |
 | `h` | ह | `ksh` | क्ष |
 | `gy` | ज्ञ | `shr` | श्र |
+
+**Retroflex sigil** (backtick prefix): backtick lifts the next
+consonant from dental to retroflex. Backtick is not used in
+ordinary text typing, so it's safe as a sigil — it's also exempt
+from the punctuation-commits rule (it joins the buffer instead of
+committing the current candidate).
+
+| Roman | Devanagari | Roman | Devanagari |
+|---|---|---|---|
+| `` `t `` | ट | `` `th `` | ठ |
+| `` `d `` | ड | `` `dh `` | ढ |
+| `` `n `` | ण | `` `s `` | ष |
+
+Examples:
+- `` `tika `` → टिक (use `` `teeka `` to get टीका).
+- `` mi`thaai `` → मिठाइ (and मिठाई-ish via the long-vowel grammar).
+- `` da`kTar `` → दक्टर — actually use `` `daakTar `` for डाक्टर;
+  most retroflex words are also in the dictionary.
+
+A lone backtick with no following consonant token passes through
+verbatim, so accidentally typing `` ` `` doesn't break anything.
 
 Adjacent consonants automatically get a halant inserted between
 them (`gar` → गर, `garchha` → गर्छ). Final consonant keeps its

@@ -47,7 +47,11 @@ public enum KeyEventRouter {
         default: break
         }
 
-        if first.isASCII, first.isLetter {
+        // Letters and the retroflex sigil character (backtick) start /
+        // extend a composition. Backtick lifts the following consonant
+        // from dental to retroflex (`` `t ``→ट, `` `dh ``→ढ, etc.) inside
+        // the rule transliterator.
+        if first.isASCII, (first.isLetter || first == "`") {
             return .appendChar(first)
         }
 
