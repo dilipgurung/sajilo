@@ -20,7 +20,9 @@ import unicodedata
 from pathlib import Path
 
 HF_DATASET = "ai4bharat/Aksharantar"
-HF_CONFIG = "nep-en"
+# The repo no longer publishes per-language BuilderConfigs (only 'default').
+# We discover Nepali file(s) by name match instead.
+NEPALI_NAME_TOKENS = ("nep", "ne_", "/ne/", "_ne.", "_ne_", "-ne-", "nepali")
 
 
 def is_clean_roman(s: str) -> bool:
@@ -44,18 +46,33 @@ def main() -> int:
     args.work_dir.mkdir(parents=True, exist_ok=True)
     out_path = args.work_dir / "aksharantar_nep.tsv"
 
-    print(f"[hf] loading {HF_DATASET} config={HF_CONFIG}")
+    print(f"[hf] loading {HF_DATASET} (Nepali files)")
     print("     (first run downloads ~500MB to ~/.cache/huggingface/)")
 
-    # Lazy import so --help works without `datasets` installed.
+    # Lazy import so --help works without `datasets` / `huggingface_hub`.
     from datasets import load_dataset  # type: ignore
+    from huggingface_hub import list_repo_files  # type: ignore
 
-    # Try train+validation; fall back to splits if combined doesn't work.
-    try:
-        ds = load_dataset(HF_DATASET, HF_CONFIG, split="train+validation")
-    except Exception as e:
-        print(f"[hf] train+validation failed ({e}); falling back to train only")
-        ds = load_dataset(HF_DATASET, HF_CONFIG, split="train")
+    # Discover Nepali data files. The repo currently has only the 'default'
+    # config; the per-language splits are encoded in filenames.
+    all_files = list_repo_files(HF_DATASET, repo_type="dataset")
+    nep_files = sorted(
+        f for f in all_files
+        if any(tok in f.lower() for tok in NEPALI_NAME_TOKENS)
+    )
+    if not nep_files:
+        print("[hf] could not find any Nepali files. Repo contents:")
+        for f in sorted(all_files):
+            print(f"        {f}")
+        raise SystemExit(
+            "no Nepali files matched — inspect the listing above and "
+            "edit NEPALI_NAME_TOKENS in fetch_aksharantar.py"
+        )
+    print(f"[hf] matched {len(nep_files)} Nepali file(s):")
+    for f in nep_files:
+        print(f"        {f}")
+
+    ds = load_dataset(HF_DATASET, data_files=nep_files, split="train")
 
     # Inspect schema once so the user can confirm field names.
     sample = ds[0]
