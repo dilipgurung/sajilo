@@ -35,16 +35,28 @@ if [[ ! -d "$APP_DIR" ]]; then
 fi
 
 echo "==> Staging payload at $STAGING"
-rm -rf "$STAGING" "$COMPONENT_PKG" "$FINAL_PKG"
+COMPONENT_PLIST="$DIST_DIR/component.plist"
+rm -rf "$STAGING" "$COMPONENT_PKG" "$FINAL_PKG" "$COMPONENT_PLIST"
 # Mirror the destination tree relative to / so pkgbuild's
 # --install-location=/ + the distribution.xml's
 # enable_currentUserHome=true gives us ~/Library/Input Methods/NepaliIME.app.
 mkdir -p "$STAGING/Library/Input Methods"
 cp -R "$APP_DIR" "$STAGING/Library/Input Methods/"
 
+# Generate a component plist and force BundleIsRelocatable=NO. Without
+# this, pkgbuild auto-marks the .app as relocatable (the default for
+# any CFBundle in the payload). Combined with enable_currentUserHome,
+# Installer ends up either prompting for a relocation target or
+# silently skipping the copy into ~/Library/Input Methods/. We want
+# the path locked: it MUST land at ~/Library/Input Methods/NepaliIME.app.
+echo "==> Generating component plist (BundleIsRelocatable=NO)"
+pkgbuild --analyze --root "$STAGING" "$COMPONENT_PLIST" >/dev/null
+/usr/libexec/PlistBuddy -c "Set :0:BundleIsRelocatable false" "$COMPONENT_PLIST"
+
 echo "==> Building component pkg"
 pkgbuild \
     --root "$STAGING" \
+    --component-plist "$COMPONENT_PLIST" \
     --install-location "/" \
     --identifier "com.gurungdilip.inputmethod.NepaliIME.pkg" \
     --version "$VERSION" \
@@ -59,7 +71,7 @@ productbuild \
     "$FINAL_PKG"
 
 # Component pkg is an intermediate; productbuild has copied it inside.
-rm -f "$COMPONENT_PKG"
+rm -f "$COMPONENT_PKG" "$COMPONENT_PLIST"
 rm -rf "$STAGING"
 
 PKG_SIZE=$(stat -f%z "$FINAL_PKG" 2>/dev/null || echo "?")
