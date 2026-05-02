@@ -198,6 +198,58 @@ shortcuts) and the IME records the selection in the learner, so
 the next time you type the same word it appears as a learned
 candidate ahead of the rule one.
 
+### Adding a word the IME doesn't know
+
+Three paths depending on how permanent the addition should be:
+
+| Scope | Where to edit | Reload | Use when |
+|---|---|---|---|
+| Single word, just-typed | nothing — pick the rule candidate | Instant (learner records it) | Rule output is correct, throwaway / occasional word |
+| Permanent for your machine | `~/Library/Application Support/NepaliIME/user_dict.tsv` | Live (file watcher) | Words you'll re-use; corrections to wrong rule output |
+| Permanent in the bundle | `scripts/corpus/lemma_seed.tsv` | After `build_dict.py` + `install.sh` | Words that should ship to every install |
+
+**Path 1 — let the learner pick it up.** If the rule transliterator
+gets the spelling right (e.g. `dilip` → दिलिप), just commit it.
+The learner stores the `(input, output)` pair in
+`~/Library/Application Support/NepaliIME/learner.sqlite`; the next
+time you type the same Roman input, the previously-selected
+Devanagari appears at the top of the candidate list as a learned
+suggestion. No editing needed.
+
+**Path 2 — edit the user dictionary.** This is the right path when
+the rule output is *wrong* (e.g. `nepal` → नेपल should be नेपाल) or
+for words you'll keep typing. Open it from the IME's menu:
+
+> input-source menu (the flag in the menu bar) → **Open User Dictionary…**
+
+Add one row per pair, tab-separated:
+
+```
+nepal	नेपाल	100000
+nmste	नमस्ते	100000
+dilip	दिलिप	100000
+```
+
+Format is `roman_input<TAB>devanagari_output<TAB>frequency`.
+Save the file — the IME's `DispatchSource` file watcher reloads
+immediately, no IME restart needed. User-dict entries get a high
+default frequency so they outrank both learned selections and the
+bundled system dictionary.
+
+**Path 3 — extend the bundled lemma seed.** For words you want
+shipped in `system_dict.tsv` so every install has them, edit
+`scripts/corpus/lemma_seed.tsv` (same TSV format), then re-run
+just the build step (sources are cached) and reinstall:
+
+```bash
+.venv-corpus/bin/python scripts/corpus/build_dict.py
+./scripts/install.sh
+```
+
+If a word here also has an entry in Aksharantar, the seed value
+wins on collision and gets a frequency boost so it outranks the
+corpus-mined inflected variants.
+
 ### Romanization scheme cheat sheet
 
 Case-insensitive — `Dilip` and `dilip` produce the same output.
