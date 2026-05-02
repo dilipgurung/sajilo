@@ -25,6 +25,13 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     /// to `nil`.
     nonisolated(unsafe) private var _charsSinceNepaliCommit: Int? = nil
 
+    /// Snapshot of `_charsSinceNepaliCommit` taken at the moment the
+    /// danda was auto-inserted. If the next idle keystroke is a
+    /// backspace (assumed to delete that danda), we restore the counter
+    /// from this snapshot so a re-typed `.` converts again. Cleared by
+    /// any other idle action.
+    nonisolated(unsafe) private var _preDandaCounter: Int? = nil
+
     public override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
         MainActor.assumeIsolated {
@@ -96,18 +103,32 @@ public final class InputController: IMKInputController, @unchecked Sendable {
                     insertCommitted(mapped, client: sender)
                     return true
                 }
+                // Period passed through literally — discard the
+                // pre-danda snapshot (we never inserted a danda).
+                _preDandaCounter = nil
             } else if chars == " " {
                 // Track the one-space window: 0 → 1, 1 → out of range.
                 if let n = _charsSinceNepaliCommit {
                     _charsSinceNepaliCommit = (n == 0) ? 1 : nil
                 }
+                _preDandaCounter = nil
                 // Pass the space through to the document below.
+            } else if chars == "\u{8}" || chars == "\u{7F}" {
+                // Idle backspace. If we just inserted an auto-danda,
+                // assume it's the character about to be deleted and
+                // restore the counter so a retyped `.` reconverts.
+                // System still handles the actual deletion.
+                if let pre = _preDandaCounter {
+                    _charsSinceNepaliCommit = pre
+                    _preDandaCounter = nil
+                }
             } else {
                 // Any other idle-state key (arrows, punctuation, letter
                 // that starts a new composition, etc.) ends the danda
                 // eligibility window — the caret is no longer "next to"
                 // the previously-committed word.
                 _charsSinceNepaliCommit = nil
+                _preDandaCounter = nil
             }
         }
 
@@ -116,15 +137,18 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     }
 
     /// Returns `।` if `s` is `.` and the caret is at most one space past
-    /// the most recently committed Devanagari word (counter ≤ 1). Clears
-    /// the counter on a successful swap so a second `.` typed immediately
-    /// after passes through unchanged (avoids `..` → `।।`).
+    /// the most recently committed Devanagari word (counter ≤ 1).
+    /// Snapshots the counter into `_preDandaCounter` and clears the live
+    /// counter so a second `.` typed immediately after stays as `.`
+    /// (avoids `..` → `।।`). The snapshot is restored on the next idle
+    /// backspace so a delete-then-retype `.` re-converts.
     @MainActor
     private func mappedPunctuation(_ s: String) -> String {
         guard s == ".",
               let n = _charsSinceNepaliCommit,
               n <= 1
         else { return s }
+        _preDandaCounter = n
         _charsSinceNepaliCommit = nil
         return "।"
     }
@@ -166,12 +190,17 @@ public final class InputController: IMKInputController, @unchecked Sendable {
             return true
         case .commitSelectedThenInsert(let s):
             commitSelectedAndReset(client: client)
-            insertCommitted(mappedPunctuation(s), client: client)
-            // The non-period punctuation cases (`,`, `!`, `?`, etc.)
-            // end the danda window — the caret is no longer "next to"
-            // the word in any meaningful sense. The period case has
-            // already cleared the counter inside mappedPunctuation.
-            _charsSinceNepaliCommit = nil
+            let toInsert = mappedPunctuation(s)
+            insertCommitted(toInsert, client: client)
+            // For non-period punctuation (`,`, `!`, `?`, ...), end the
+            // danda window — the caret is no longer "next to" the word.
+            // For period: mappedPunctuation already cleared the live
+            // counter and stashed the pre-danda snapshot so a backspace
+            // can recover. Don't disturb that snapshot here.
+            if toInsert == s {
+                _charsSinceNepaliCommit = nil
+                _preDandaCounter = nil
+            }
             return true
         case .passThrough:
             return false
@@ -224,6 +253,7 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         // Caret is now sitting right after a Devanagari word — open the
         // danda eligibility window. Process step (Space) may bump to 1.
         _charsSinceNepaliCommit = 0
+        _preDandaCounter = nil
         _state = .idle
         _panel?.hide()
     }
@@ -239,6 +269,7 @@ public final class InputController: IMKInputController, @unchecked Sendable {
             _panel?.hide()
             // Raw Roman commit — not Devanagari, so no danda window.
             _charsSinceNepaliCommit = nil
+            _preDandaCounter = nil
         }
     }
 
@@ -249,6 +280,7 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         _state = .idle
         _panel?.hide()
         _charsSinceNepaliCommit = nil
+        _preDandaCounter = nil
     }
 
     @MainActor

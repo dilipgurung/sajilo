@@ -186,6 +186,11 @@ to think between typing the word and typing the period; the danda will
 still fire as long as you haven't moved the caret or typed anything
 that takes you further than one space past the word.
 
+If the auto-danda was wrong and you backspace it, retyping `.` will
+convert again (the IME remembers the position the danda came from).
+A second `.` typed *immediately* after an auto-danda is left literal
+so `..` becomes `।.` rather than `।।`.
+
 ## Rule-based candidate fallback
 
 While you type, the marked text in your editor stays as the raw
