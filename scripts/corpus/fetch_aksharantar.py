@@ -49,12 +49,11 @@ def main() -> int:
     print(f"[hf] loading {HF_DATASET} (Nepali files)")
     print("     (first run downloads ~500MB to ~/.cache/huggingface/)")
 
-    # Lazy import so --help works without `datasets` / `huggingface_hub`.
-    from datasets import load_dataset  # type: ignore
-    from huggingface_hub import list_repo_files  # type: ignore
+    # Lazy import so --help works without huggingface_hub installed.
+    from huggingface_hub import hf_hub_download, list_repo_files  # type: ignore
 
-    # Discover Nepali data files. The repo currently has only the 'default'
-    # config; the per-language splits are encoded in filenames.
+    # Discover Nepali data files. The repo no longer publishes per-language
+    # BuilderConfigs (only 'default'); per-language splits are filename-based.
     all_files = list_repo_files(HF_DATASET, repo_type="dataset")
     nep_files = sorted(
         f for f in all_files
@@ -72,62 +71,77 @@ def main() -> int:
     for f in nep_files:
         print(f"        {f}")
 
-    ds = load_dataset(HF_DATASET, data_files=nep_files, split="train")
+    # Download each file. We parse JSON ourselves rather than going through
+    # `datasets.load_dataset(data_files=...)` because Aksharantar's per-split
+    # files have inconsistent schemas (train has 'score', test/val do not),
+    # which trips load_dataset's schema-merging step.
+    local_paths = []
+    for f in nep_files:
+        local = hf_hub_download(HF_DATASET, filename=f, repo_type="dataset")
+        local_paths.append(Path(local))
+        print(f"[hf]   downloaded {f} -> {local}")
 
-    # Inspect schema once so the user can confirm field names.
-    sample = ds[0]
-    print(f"[hf] sample row: {sample}")
-    keys = list(sample.keys())
-
-    # Aksharantar uses 'native word' / 'english word' per the dataset card,
-    # but field names have varied across versions. Detect at runtime.
-    def pick(prefer):
-        for k in keys:
-            kl = k.lower().replace("_", " ")
-            for p in prefer:
-                if p in kl:
-                    return k
-        return None
-
-    deva_key = pick(["native", "indic", "target"])
-    roman_key = pick(["english", "roman", "source"])
-    if not deva_key or not roman_key:
-        raise SystemExit(
-            f"could not identify devanagari/roman fields in row keys {keys!r}; "
-            "edit fetch_aksharantar.py to map them explicitly"
-        )
-    print(f"[hf] mapping deva='{deva_key}' roman='{roman_key}'")
-
-    try:
-        from tqdm import tqdm  # type: ignore
-        rows_iter = tqdm(ds, desc="aksharantar", unit="row")
-    except ImportError:
-        rows_iter = ds
+    deva_keys = ("native word", "native_word", "indic", "target")
+    roman_keys = ("english word", "english_word", "roman", "source_word")
 
     seen: set[tuple[str, str]] = set()
     bad = 0
+    examined = 0
     with out_path.open("w", encoding="utf-8") as fh:
-        for row in rows_iter:
-            deva_raw = row.get(deva_key)
-            roman_raw = row.get(roman_key)
-            if not deva_raw or not roman_raw:
-                bad += 1
-                continue
-            deva = unicodedata.normalize("NFC", str(deva_raw).strip())
-            roman = str(roman_raw).strip().lower()
-            if not deva or not is_clean_roman(roman):
-                bad += 1
-                continue
-            key = (deva, roman)
-            if key in seen:
-                continue
-            seen.add(key)
-            fh.write(f"{deva}\t{roman}\n")
+        for path in local_paths:
+            for row in iter_records(path):
+                examined += 1
+                deva_raw = first_present(row, deva_keys)
+                roman_raw = first_present(row, roman_keys)
+                if not deva_raw or not roman_raw:
+                    bad += 1
+                    continue
+                deva = unicodedata.normalize("NFC", str(deva_raw).strip())
+                roman = str(roman_raw).strip().lower()
+                if not deva or not is_clean_roman(roman):
+                    bad += 1
+                    continue
+                key = (deva, roman)
+                if key in seen:
+                    continue
+                seen.add(key)
+                fh.write(f"{deva}\t{roman}\n")
 
-    print(f"[hf] wrote {len(seen):,} unique pairs to {out_path}")
+    print(f"[hf] examined {examined:,} rows, kept {len(seen):,} unique pairs")
+    print(f"[hf] wrote {out_path}")
     if bad:
-        print(f"[hf] skipped {bad:,} rows (empty / non-ASCII roman / etc.)")
+        print(f"[hf] skipped {bad:,} rows (empty / non-ASCII roman / missing fields)")
     return 0
+
+
+def first_present(row: dict, keys: tuple) -> object:
+    for k in keys:
+        if k in row and row[k]:
+            return row[k]
+    return None
+
+
+def iter_records(path: Path):
+    """Yield dict records from a JSON or JSONL file."""
+    import json
+    with path.open(encoding="utf-8") as fh:
+        first = fh.read(1)
+        fh.seek(0)
+        if first == "[":
+            # JSON array
+            for r in json.load(fh):
+                yield r
+        else:
+            # JSON Lines
+            for i, line in enumerate(fh, 1):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    yield json.loads(line)
+                except json.JSONDecodeError as e:
+                    print(f"[hf]   {path.name}:{i} bad JSON ({e}); skipping")
+                    continue
 
 
 if __name__ == "__main__":
