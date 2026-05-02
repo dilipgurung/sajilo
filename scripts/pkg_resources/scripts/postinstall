@@ -1,0 +1,23 @@
+#!/bin/bash
+# Postinstall: poke the input-source machinery so macOS rescans
+# ~/Library/Input Methods/ and picks up the freshly-installed IME.
+# Same logic as scripts/install.sh; the .pkg path runs after the
+# component payload has been copied into place by Installer.app.
+set -e
+
+INSTALLED_PATH="$HOME/Library/Input Methods/NepaliIME.app"
+if [[ ! -d "$INSTALLED_PATH" ]]; then
+    echo "postinstall: $INSTALLED_PATH not found; nothing to register" >&2
+    # Don't fail the install — pkgbuild's payload copy is the
+    # source of truth, and an absent path here means the user
+    # picked an unusual install location.
+    exit 0
+fi
+
+# Re-register input sources. These daemons cache the input-method
+# list; killing them forces a rescan. They auto-respawn.
+killall "TextInputMenuAgent"  >/dev/null 2>&1 || true
+killall "TextInputSwitcher"   >/dev/null 2>&1 || true
+killall "ControlCenter"       >/dev/null 2>&1 || true
+
+exit 0

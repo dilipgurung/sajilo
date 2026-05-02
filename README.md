@@ -7,11 +7,14 @@ You type `namaste`, see `नमस्ते` as a marked-text candidate, and com
 Space. The IME learns from your selections and reorders future candidates
 based on frequency + recency.
 
-> **Status:** v0.1 scaffold. Engine, persistence, and IMK plumbing are
-> implemented and unit-tested (47/47 green). Ships with a ~150-word starter
-> dictionary; a corpus build pipeline (`scripts/corpus/`) regenerates a real
-> ~30k-headword dictionary from AI4Bharat's Aksharantar dataset ranked by
-> Nepali Wikipedia frequency. Run `./scripts/corpus/run_all.sh` to build it.
+> **Status:** v0.1. Engine, persistence, and IMK plumbing are
+> implemented and unit-tested (47/47 green). Ships with a ~150-word
+> starter dictionary; a corpus build pipeline (`scripts/corpus/`) builds
+> a real ~30k-headword dictionary from AI4Bharat's Aksharantar dataset
+> ranked by Nepali Wikipedia frequency, with a hand-curated lemma seed
+> (eval: 68/68). A per-user `.pkg` installer (`scripts/make_pkg.sh`)
+> can be shared with non-developers — currently unsigned (Tier 1), so
+> recipients right-click → Open the first time.
 
 ---
 
@@ -21,20 +24,34 @@ based on frequency + recency.
 - Xcode 16+ / Swift 6.0+ toolchain (verified against Swift 6.3.1)
 - Personal/dev install only — ad-hoc signed, not notarized.
 
-## Quick start
+## Install (for end-users — from a `.pkg`)
+
+If you've been handed a `NepaliIME.pkg`:
+
+1. **Right-click** the `.pkg` → **Open** (don't double-click — the
+   installer is unsigned, so Gatekeeper blocks plain double-clicks
+   on macOS 10.15+ with "App is damaged or can't be opened").
+2. Click **Open** on the security dialog, then walk through the
+   installer. It copies the IME to `~/Library/Input Methods/` —
+   no admin password required.
+3. After install, follow the on-screen instructions to enable the
+   input source: **System Settings → Keyboard → Text Input → Edit
+   (Input Sources) → +** → search "Nepali" → **Nepali IME**.
+4. Switch to it via the input-source menu (the small flag/globe icon
+   in the menu bar, or **Control + Space**), then type `namaste` in
+   TextEdit — you should see नमस्ते as a candidate. **Space** commits.
+
+The unsigned warning will go away once we ship a notarized build
+(needs Apple Developer Program — currently out of scope).
+
+## Quick start (for developers — building from source)
 
 ```bash
 # Build, bundle, install to ~/Library/Input Methods/, restart input agents
 ./scripts/install.sh
 ```
 
-Then:
-
-1. Open **System Settings → Keyboard → Text Input → Edit (Input Sources)**
-2. Click **+**, search "Nepali", pick **Nepali IME**
-3. Switch to it via the input-source menu (globe icon, or Ctrl+Space)
-4. Type `namaste` in TextEdit — you should see a marked-text underline plus
-   a candidate panel below the caret. Press Space to commit candidate #1.
+Then enable the input source as in step 3 above.
 
 If you only want the bundle without installing it:
 
@@ -42,6 +59,19 @@ If you only want the bundle without installing it:
 ./scripts/bundle.sh
 # → dist/NepaliIME.app
 ```
+
+To build a redistributable installer:
+
+```bash
+./scripts/make_pkg.sh
+# → dist/NepaliIME.pkg  (~2 MB, ad-hoc / unsigned)
+```
+
+The `.pkg` runs `bundle.sh`, stages the .app under `Library/Input
+Methods/`, and wraps it with `pkgbuild` + `productbuild` plus a
+postinstall hook that pokes `TextInputMenuAgent` so macOS rescans
+input sources. UI screens come from `scripts/pkg_resources/`. Output
+is per-user only (lands in `~/Library/Input Methods/`, no sudo).
 
 ## Build the real dictionary (recommended after first install)
 
@@ -154,9 +184,15 @@ BundleResources/           # Info.plist, system_dict.tsv, icons, lproj strings
 ├── PaletteIconTemplate.icns  # "ने" character (template, alternate slot)
 ├── en.lproj/              #   localized display names
 └── ne.lproj/              #   Devanagari display names
-scripts/                   # bundle.sh, install.sh, make_icon.swift
-└── corpus/                #   Python pipeline to regenerate system_dict.tsv
-                           #   from Aksharantar + Nepali Wikipedia
+scripts/
+├── bundle.sh              # swift build → .app bundle, ad-hoc signed
+├── install.sh             # bundle.sh + cp to ~/Library/Input Methods/
+├── make_pkg.sh            # bundle.sh + pkgbuild + productbuild → .pkg
+├── make_icon.swift        # regenerate MenuIcon.icns + PaletteIcon.icns
+├── corpus/                # Python pipeline to regenerate system_dict.tsv
+│                          # from Aksharantar + Wikipedia + lemma seed
+└── pkg_resources/         # Distribution.xml, postinstall, welcome/
+                           # conclusion HTML for the .pkg installer
 ```
 
 Key design choices:
@@ -272,7 +308,11 @@ primary diagnostic channel.
   for both. If macOS shows a generic blue circle in the switcher, the
   `.icns` failed to load — see the "Icons" section.
 - No Preferences window yet (toggle learning, view paths, reset learner).
-- Not notarised. Personal/dev install only.
+- The `.pkg` installer (`scripts/make_pkg.sh`) is **unsigned** — works
+  for the developer and anyone willing to right-click → Open it once,
+  but Gatekeeper blocks plain double-clicks on macOS 10.15+. Notarized
+  builds need an Apple Developer Program membership ($99/yr) and
+  Developer ID certs; not yet wired up.
 - Caret-rect positioning relies on `IMKTextInput.attributes(forCharacterIndex:lineHeightRectangle:)`,
   which a few client apps (Electron, some Java) implement poorly. The panel
   may appear at the wrong position in those apps.

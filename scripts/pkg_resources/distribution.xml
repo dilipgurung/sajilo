@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="2">
+    <title>Nepali IME</title>
+    <organization>com.gurungdilip.inputmethod</organization>
+    <options
+        customize="never"
+        require-scripts="true"
+        rootVolumeOnly="false"
+        hostArchitectures="arm64,x86_64"/>
+    <!-- Per-user install only: lands in ~/Library/Input Methods/, no sudo. -->
+    <domains
+        enable_currentUserHome="true"
+        enable_localSystem="false"
+        enable_anywhere="false"/>
+    <welcome file="welcome.html"/>
+    <conclusion file="conclusion.html"/>
+    <choices-outline>
+        <line choice="default">
+            <line choice="com.gurungdilip.inputmethod.NepaliIME.pkg"/>
+        </line>
+    </choices-outline>
+    <choice id="default" title="Nepali IME"/>
+    <choice id="com.gurungdilip.inputmethod.NepaliIME.pkg" visible="false">
+        <pkg-ref id="com.gurungdilip.inputmethod.NepaliIME.pkg"/>
+    </choice>
+    <pkg-ref id="com.gurungdilip.inputmethod.NepaliIME.pkg" version="0.1.0" auth="none">component.pkg</pkg-ref>
+</installer-gui-script>
