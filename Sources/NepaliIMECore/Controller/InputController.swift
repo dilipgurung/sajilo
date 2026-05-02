@@ -95,10 +95,25 @@ public final class InputController: IMKInputController, @unchecked Sendable {
                 insertCommitted("ं", client: sender)
                 return true
             }
+            // Devanagari digits: any ASCII 0-9 typed in idle becomes
+            // its Devanagari counterpart ०-९. Always converts when the
+            // Nepali IME is the active input source — to type ASCII
+            // digits, switch to ABC momentarily.
+            if chars.count == 1,
+               let digit = chars.first?.wholeNumberValue, (0...9).contains(digit) {
+                insertCommitted(Self.devanagariDigit(digit), client: sender)
+                return true
+            }
         }
 
         let action = KeyEventRouter.classify(event: event, hasComposition: _state.hasBuffer)
         return process(action: action, client: sender)
+    }
+
+    /// Returns the Devanagari digit glyph (०-९) for the given decimal value 0-9.
+    private static func devanagariDigit(_ d: Int) -> String {
+        let glyphs: [String] = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"]
+        return glyphs[d]
     }
 
     /// Reads the 1–2 characters immediately preceding the caret from the
@@ -197,13 +212,18 @@ public final class InputController: IMKInputController, @unchecked Sendable {
             return true
         case .commitSelectedThenInsert(let s):
             commitSelectedAndReset(client: client)
-            // After committing, look at the document to decide whether
-            // the inserted punctuation should be danda or literal. Works
-            // uniformly for the candidate-commit path (caret lands after
-            // Devanagari → danda) and the raw-fallback path (caret lands
-            // after Latin → literal).
+            // After committing, look at the document to decide what
+            // punctuation/digit to insert. Works uniformly for the
+            // candidate-commit path (caret after Devanagari → convert)
+            // and the raw-fallback path (caret after Latin → literal).
             if s == "." && cursorIsAtEndOfDevanagariWord(client: client) {
                 insertCommitted("।", client: client)
+            } else if s.count == 1,
+                      let digit = s.first?.wholeNumberValue, (0...9).contains(digit) {
+                // Mid-composition digit (only `0` reaches this path —
+                // 1-9 are candidate selectors). Always converts to
+                // the Devanagari digit, matching the idle-state rule.
+                insertCommitted(Self.devanagariDigit(digit), client: client)
             } else {
                 insertCommitted(s, client: client)
             }

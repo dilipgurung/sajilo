@@ -201,7 +201,20 @@ In a few apps that don't fully implement the IMK text-reading APIs
 (Electron, some Java), the IME can't see what's around the caret and
 periods always pass through literally — no auto-danda there.
 
-## Rule-based candidate fallback
+## Devanagari digits
+
+While the Nepali IME is the active input source, ASCII digits `0-9`
+typed in idle become their Devanagari equivalents `०१२३४५६७८९`. To
+type ASCII digits (phone numbers, codes, mixed-script numerals),
+switch input source to ABC for the digits, then switch back.
+
+- `123` → `१२३`
+- `namaste<Tab>123` → `नमस्ते१२३`
+- `123abc 456` → `१२३abc ४५६` (letters compose normally; digits convert)
+
+Mid-composition, digits 1-9 keep their candidate-selection role
+(`namaste1` commits the first candidate); digit `0` mid-composition
+also converts to `०`.
 
 While you type, the marked text in your editor stays as the raw
 Roman characters (so you always see what you typed). The
