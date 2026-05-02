@@ -122,26 +122,46 @@ def first_present(row: dict, keys: tuple) -> object:
 
 
 def iter_records(path: Path):
-    """Yield dict records from a JSON or JSONL file."""
-    import json
+    """Yield dict records from a JSON / JSONL file or a ZIP of either."""
+    import io
+    import zipfile
+
+    if path.suffix.lower() == ".zip":
+        with zipfile.ZipFile(path) as zf:
+            for inner in zf.namelist():
+                if inner.endswith("/") or inner.startswith("__MACOSX"):
+                    continue
+                with zf.open(inner) as raw:
+                    text_stream = io.TextIOWrapper(raw, encoding="utf-8")
+                    print(f"[hf]   reading {path.name}!{inner}")
+                    yield from _iter_text(text_stream, f"{path.name}!{inner}")
+        return
+
     with path.open(encoding="utf-8") as fh:
-        first = fh.read(1)
-        fh.seek(0)
-        if first == "[":
-            # JSON array
-            for r in json.load(fh):
-                yield r
-        else:
-            # JSON Lines
-            for i, line in enumerate(fh, 1):
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    yield json.loads(line)
-                except json.JSONDecodeError as e:
-                    print(f"[hf]   {path.name}:{i} bad JSON ({e}); skipping")
-                    continue
+        yield from _iter_text(fh, path.name)
+
+
+def _iter_text(fh, label: str):
+    import json
+    first = fh.read(1)
+    if not first:
+        return
+    if first == "[":
+        rest = first + fh.read()
+        for r in json.loads(rest):
+            yield r
+        return
+    # JSON Lines
+    line0 = first + fh.readline()
+    for i, line in enumerate([line0, *fh], 1):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            yield json.loads(line)
+        except json.JSONDecodeError as e:
+            print(f"[hf]   {label}:{i} bad JSON ({e}); skipping")
+            continue
 
 
 if __name__ == "__main__":
