@@ -32,12 +32,12 @@ chmod +x "$MACOS_DIR/$APP_NAME"
 cp "$ROOT_DIR/BundleResources/Info.plist" "$CONTENTS/Info.plist"
 cp "$ROOT_DIR/BundleResources/system_dict.tsv" "$RESOURCES_DIR/system_dict.tsv"
 
-if [[ -f "$ROOT_DIR/BundleResources/MenuIcon.pdf" ]]; then
-    cp "$ROOT_DIR/BundleResources/MenuIcon.pdf" "$RESOURCES_DIR/MenuIcon.pdf"
+if [[ -f "$ROOT_DIR/BundleResources/MenuIcon.icns" ]]; then
+    cp "$ROOT_DIR/BundleResources/MenuIcon.icns" "$RESOURCES_DIR/MenuIcon.icns"
 fi
 
-if [[ -f "$ROOT_DIR/BundleResources/PaletteIcon.icns" ]]; then
-    cp "$ROOT_DIR/BundleResources/PaletteIcon.icns" "$RESOURCES_DIR/PaletteIcon.icns"
+if [[ -f "$ROOT_DIR/BundleResources/PaletteIconTemplate.icns" ]]; then
+    cp "$ROOT_DIR/BundleResources/PaletteIconTemplate.icns" "$RESOURCES_DIR/PaletteIconTemplate.icns"
 fi
 
 # Copy localized strings (each *.lproj/ supplies localized display names

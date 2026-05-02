@@ -15,8 +15,8 @@ import Foundation
 import AppKit
 
 let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-let menuOut = root.appendingPathComponent("BundleResources/MenuIcon.pdf")
-let paletteOut = root.appendingPathComponent("BundleResources/PaletteIcon.icns")
+let menuOut = root.appendingPathComponent("BundleResources/MenuIcon.icns")
+let paletteOut = root.appendingPathComponent("BundleResources/PaletteIconTemplate.icns")
 
 func writePDF(at url: URL, size: NSSize, draw: (NSGraphicsContext, CGContext) -> Void) throws {
     let data = NSMutableData()
@@ -39,32 +39,84 @@ func writePDF(at url: URL, size: NSSize, draw: (NSGraphicsContext, CGContext) ->
     print("Wrote \(url.path) (\(data.length) bytes)")
 }
 
-// MARK: - Menu icon: small colored Nepal flag pennant.
-// TISIconIsTemplate=false in Info.plist so the red/blue colors render as drawn.
-try writePDF(at: menuOut, size: NSSize(width: 16, height: 16)) { _, _ in
-    let W: CGFloat = 16
-    let H: CGFloat = 16
-    let inset: CGFloat = 1.0
-    let topPad: CGFloat = 2.0
-    let botPad: CGFloat = 2.0
-    let top = H - topPad
-    let bot = botPad
+// MARK: - Menu icon: solid-red Nepal flag pennant silhouette as .icns.
+// Both the menu bar tray and the Ctrl+Space switcher use this. The switcher's
+// TIS-based icon loader historically only reads .icns reliably, so we ship
+// the menu icon as a multi-resolution icns rather than PDF.
+do {
+    func renderFlagPNG(pixelSize: Int) throws -> Data {
+        let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: pixelSize, pixelsHigh: pixelSize,
+            bitsPerSample: 8, samplesPerPixel: 4,
+            hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0, bitsPerPixel: 32
+        )!
+        rep.size = NSSize(width: pixelSize, height: pixelSize)
 
-    let path = NSBezierPath()
-    path.move(to: NSPoint(x: inset, y: bot))
-    path.line(to: NSPoint(x: inset, y: top))
-    path.line(to: NSPoint(x: W * 0.78, y: bot + (top - bot) * 0.55))   // upper peak
-    path.line(to: NSPoint(x: W * 0.50, y: bot + (top - bot) * 0.45))   // notch
-    path.line(to: NSPoint(x: W - inset, y: bot))                       // lower peak
-    path.close()
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        defer { NSGraphicsContext.restoreGraphicsState() }
 
-    NSColor(red: 0.86, green: 0.08, blue: 0.24, alpha: 1.0).setFill()
-    path.fill()
+        let W = CGFloat(pixelSize)
+        let H = CGFloat(pixelSize)
+        let inset: CGFloat = max(1, W * 0.06)
+        let topPad: CGFloat = max(1, H * 0.10)
+        let botPad: CGFloat = max(1, H * 0.10)
+        let top = H - topPad
+        let bot = botPad
 
-    NSColor(red: 0.0, green: 0.22, blue: 0.58, alpha: 1.0).setStroke()
-    path.lineWidth = 1.0
-    path.lineJoinStyle = .round
-    path.stroke()
+        let path = NSBezierPath()
+        path.move(to: NSPoint(x: inset, y: bot))
+        path.line(to: NSPoint(x: inset, y: top))
+        path.line(to: NSPoint(x: W * 0.78, y: bot + (top - bot) * 0.55))
+        path.line(to: NSPoint(x: W * 0.50, y: bot + (top - bot) * 0.45))
+        path.line(to: NSPoint(x: W - inset, y: bot))
+        path.close()
+
+        NSColor(red: 0.86, green: 0.08, blue: 0.24, alpha: 1.0).setFill()
+        path.fill()
+
+        guard let png = rep.representation(using: .png, properties: [:]) else {
+            throw NSError(domain: "make_icon", code: 5)
+        }
+        return png
+    }
+
+    let iconsetDir = FileManager.default.temporaryDirectory
+        .appendingPathComponent("MenuIcon-\(UUID().uuidString).iconset", isDirectory: true)
+    try FileManager.default.createDirectory(at: iconsetDir, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: iconsetDir) }
+
+    let renditions: [(name: String, pixels: Int)] = [
+        ("icon_16x16.png", 16),
+        ("icon_16x16@2x.png", 32),
+        ("icon_32x32.png", 32),
+        ("icon_32x32@2x.png", 64),
+        ("icon_128x128.png", 128),
+        ("icon_128x128@2x.png", 256),
+    ]
+    for r in renditions {
+        let png = try renderFlagPNG(pixelSize: r.pixels)
+        try png.write(to: iconsetDir.appendingPathComponent(r.name))
+    }
+
+    let proc = Process()
+    proc.executableURL = URL(fileURLWithPath: "/usr/bin/iconutil")
+    proc.arguments = ["-c", "icns", iconsetDir.path, "-o", menuOut.path]
+    let stderr = Pipe()
+    proc.standardError = stderr
+    try proc.run()
+    proc.waitUntilExit()
+    if proc.terminationStatus != 0 {
+        let err = String(data: stderr.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+        FileHandle.standardError.write(Data("iconutil failed: \(err)\n".utf8))
+        exit(Int32(proc.terminationStatus))
+    }
+    let attrs = try FileManager.default.attributesOfItem(atPath: menuOut.path)
+    let size = (attrs[.size] as? Int) ?? 0
+    print("Wrote \(menuOut.path) (\(size) bytes)")
 }
 
 // MARK: - Palette icon: .icns (multi-resolution) — what the Ctrl+Space
@@ -92,25 +144,22 @@ do {
 
         let canvas = NSRect(x: 0, y: 0, width: pixelSize, height: pixelSize)
 
-        // Solid round badge so it survives macOS's circular masking in the switcher.
-        let inset: CGFloat = max(1, CGFloat(pixelSize) * 0.04)
-        let badgeRect = canvas.insetBy(dx: inset, dy: inset)
-        let badge = NSBezierPath(ovalIn: badgeRect)
-        NSColor(red: 0.0, green: 0.22, blue: 0.58, alpha: 1.0).setFill()
-        badge.fill()
-
-        // Character. Use the largest Devanagari font that still fits and is
-        // legible at this pixel size.
+        // No badge — macOS's input-source switcher provides its own circular
+        // backdrop. Filename ends in "Template", so AppKit treats the image
+        // as a template (alpha-only mask) and tints to match context.
+        // Drawn in BLACK so the file is also visible when previewed in
+        // Finder/Preview against a white background — the source color is
+        // ignored at runtime once template treatment kicks in.
         let para = NSMutableParagraphStyle()
         para.alignment = .center
-        let fontSize = CGFloat(pixelSize) * 0.72
+        let fontSize = CGFloat(pixelSize) * 0.85
         let font = NSFont(name: "Kohinoor Devanagari", size: fontSize)
             ?? NSFont(name: "Devanagari MT", size: fontSize)
             ?? NSFont(name: "Devanagari Sangam MN", size: fontSize)
             ?? NSFont.systemFont(ofSize: fontSize, weight: .bold)
         let attrs: [NSAttributedString.Key: Any] = [
             .font: font,
-            .foregroundColor: NSColor.white,
+            .foregroundColor: NSColor.black,
             .paragraphStyle: para,
         ]
         let str = NSAttributedString(string: "ने", attributes: attrs)
@@ -120,7 +169,7 @@ do {
         )
         let drawRect = NSRect(
             x: canvas.midX - bounds.width / 2,
-            y: canvas.midY - bounds.height / 2 - CGFloat(pixelSize) * 0.04,
+            y: canvas.midY - bounds.height / 2 - CGFloat(pixelSize) * 0.05,
             width: bounds.width,
             height: bounds.height
         )
