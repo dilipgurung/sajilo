@@ -36,6 +36,13 @@
     <array>
         <string>Deva</string>
     </array>
+    <key>tsInputMethodIconFileKey</key>
+    <string>MenuIcon.pdf</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>ne</string>
+    </array>
 
     <key>ComponentInputModeDict</key>
     <dict>
@@ -48,21 +55,21 @@
                 <key>TISIntendedLanguage</key>
                 <string>ne</string>
                 <key>tsInputModeAlternateMenuIconFileKey</key>
-                <string>MenuIcon.tiff</string>
+                <string>MenuIcon.pdf</string>
                 <key>tsInputModeDefaultStateKey</key>
                 <string>Enabled</string>
                 <key>tsInputModeIsVisibleKey</key>
                 <true/>
                 <key>tsInputModeMenuIconFileKey</key>
-                <string>MenuIcon.tiff</string>
+                <string>MenuIcon.pdf</string>
                 <key>tsInputModePaletteIconFileKey</key>
-                <string>MenuIcon.tiff</string>
+                <string>MenuIcon.pdf</string>
                 <key>tsInputModePrimaryInScriptKey</key>
                 <true/>
                 <key>tsInputModeScriptKey</key>
                 <string>Deva</string>
                 <key>TISIconIsTemplate</key>
-                <true/>
+                <false/>
             </dict>
         </dict>
         <key>tsVisibleInputModeOrderedArrayKey</key>

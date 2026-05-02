@@ -1,0 +1,6 @@
+/* Bundle */
+"CFBundleName" = "नेपाली IME";
+"CFBundleDisplayName" = "नेपाली IME";
+
+/* Input modes */
+"com.gurungdilip.inputmethod.NepaliIME.Nepali" = "नेपाली";

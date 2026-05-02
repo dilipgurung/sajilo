@@ -1,0 +1,6 @@
+/* Bundle */
+"CFBundleName" = "Nepali IME";
+"CFBundleDisplayName" = "Nepali IME";
+
+/* Input modes — keys must match TISInputSourceID values from ComponentInputModeDict */
+"com.gurungdilip.inputmethod.NepaliIME.Nepali" = "Nepali";

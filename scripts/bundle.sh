@@ -32,10 +32,19 @@ chmod +x "$MACOS_DIR/$APP_NAME"
 cp "$ROOT_DIR/BundleResources/Info.plist" "$CONTENTS/Info.plist"
 cp "$ROOT_DIR/BundleResources/system_dict.tsv" "$RESOURCES_DIR/system_dict.tsv"
 
-# Optional: copy menu icon if present
-if [[ -f "$ROOT_DIR/BundleResources/MenuIcon.tiff" ]]; then
-    cp "$ROOT_DIR/BundleResources/MenuIcon.tiff" "$RESOURCES_DIR/MenuIcon.tiff"
+if [[ -f "$ROOT_DIR/BundleResources/MenuIcon.pdf" ]]; then
+    cp "$ROOT_DIR/BundleResources/MenuIcon.pdf" "$RESOURCES_DIR/MenuIcon.pdf"
 fi
+
+# Copy localized strings (each *.lproj/ supplies localized display names
+# for CFBundleName, CFBundleDisplayName, and the input mode IDs declared in
+# ComponentInputModeDict).
+for lproj in "$ROOT_DIR"/BundleResources/*.lproj; do
+    [[ -d "$lproj" ]] || continue
+    name="$(basename "$lproj")"
+    mkdir -p "$RESOURCES_DIR/$name"
+    cp -R "$lproj"/. "$RESOURCES_DIR/$name/"
+done
 
 echo "==> Ad-hoc signing..."
 codesign --force --sign - --timestamp=none --options=runtime "$APP_DIR"
