@@ -56,14 +56,6 @@ final class KeyEventRouterTests: XCTestCase {
         XCTAssertEqual(classify(".", composing: true), .commitSelectedThenInsert("."))
     }
 
-    func testBacktickAppendsAsSigilNotCommit() {
-        // Backtick is the retroflex sigil prefix; it must enter the
-        // buffer (so the rule transliterator can fold `` `t `` → ट
-        // etc.) instead of triggering commit-then-insert like other
-        // ASCII punctuation.
-        XCTAssertEqual(classify("`", composing: false), .appendChar("`"))
-        XCTAssertEqual(classify("`", composing: true),  .appendChar("`"))
-    }
 
     func testCommandKeyChordPassesThrough() {
         let action = KeyEventRouter.classify(

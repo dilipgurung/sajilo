@@ -75,7 +75,7 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         // works for words pasted in or typed in earlier sessions, not
         // just freshly-committed ones.
         if !_state.hasBuffer,
-           event.charactersIgnoringModifiers == ".",
+           event.characters == ".",
            cursorIsAtEndOfDevanagariWord(client: sender) {
             insertCommitted("।", client: sender)
             return true

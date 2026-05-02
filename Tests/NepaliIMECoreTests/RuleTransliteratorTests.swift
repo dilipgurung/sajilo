@@ -93,12 +93,14 @@ final class RuleTransliteratorTests: XCTestCase {
         XCTAssertEqual(first("dilip"), "दिलिप")
     }
 
-    // MARK: - Case insensitivity
+    // MARK: - Capital handling for non-retroflex letters
 
-    func testCaseInsensitive() {
-        XCTAssertEqual(first("Dilip"), "दिलिप")
-        XCTAssertEqual(first("DILIP"), "दिलिप")
-        XCTAssertEqual(first("KaThMaNdU"), first("kathmandu"))
+    func testNonRetroflexCapsAreCaseInsensitive() {
+        // Letters that have no retroflex pair (K, M, P, ...) silently
+        // fall back to their lowercase reading — no new alternatives.
+        XCTAssertEqual(first("Kalam"), first("kalam"))
+        XCTAssertEqual(first("Mero"),  first("mero"))
+        XCTAssertEqual(first("Pani"),  first("pani"))
     }
 
     // MARK: - Pass-through for unknown chars
@@ -198,45 +200,52 @@ final class RuleTransliteratorTests: XCTestCase {
         XCTAssertLessThanOrEqual(parses.count, 2)
     }
 
-    // MARK: - Retroflex sigils (backtick)
+    // MARK: - Capital-letter retroflex (ITRANS convention)
 
-    func testRetroflexSigilSingleConsonants() {
-        // `` `t/`d/`n/`s `` map to ट/ड/ण/ष.
-        XCTAssertEqual(first("`t"), "ट")
-        XCTAssertEqual(first("`d"), "ड")
-        XCTAssertEqual(first("`n"), "ण")
-        XCTAssertEqual(first("`s"), "ष")
+    func testRetroflexCapitalSingleConsonants() {
+        // T/D/N/S → ट/ड/ण/ष as the default (first) reading.
+        XCTAssertEqual(first("T"), "ट")
+        XCTAssertEqual(first("D"), "ड")
+        XCTAssertEqual(first("N"), "ण")
+        XCTAssertEqual(first("S"), "ष")
     }
 
-    func testRetroflexSigilAspirated() {
-        // 3-char `` `th/`dh `` map to ठ/ढ.
-        XCTAssertEqual(first("`th"), "ठ")
-        XCTAssertEqual(first("`dh"), "ढ")
-    }
-
-    func testRetroflexInsideWord() {
-        // mi`thaai → मिठाई-ish: m + i-matra + retroflex-tha + aa-matra + i.
-        // Default longest-match parse should use the retroflex `th.
-        let parses = all("mi`thaai")
-        XCTAssertTrue(parses.contains("मिठाइ"),
-                      "expected मिठाइ in \(parses)")
+    func testRetroflexCapitalAspirated() {
+        // Th/Dh → ठ/ढ as the default reading.
+        XCTAssertEqual(first("Th"), "ठ")
+        XCTAssertEqual(first("Dh"), "ढ")
     }
 
     func testRetroflexAtWordStart() {
-        // `taa = retroflex t + long aa = टा (e.g. ṭā in टीका prefix).
-        XCTAssertEqual(first("`taa"), "टा")
+        // Taa = retroflex T + long aa = टा.
+        XCTAssertEqual(first("Taa"), "टा")
+    }
+
+    func testRetroflexInsideWord() {
+        // miThaai = m + i-matra + retroflex-Th + aa-matra + i. Default
+        // parse uses retroflex; dental is also a multi-candidate alt.
+        let parses = all("miThaai")
+        XCTAssertTrue(parses.contains("मिठाइ"),
+                      "expected retroflex reading मिठाइ in \(parses)")
+        XCTAssertTrue(parses.contains("मिथाइ"),
+                      "expected dental alt मिथाइ in \(parses)")
     }
 
     func testRetroflexClusterTriggersHalant() {
-        // `t followed by another consonant should still get a halant
-        // inserted (general consonant-cluster rule, no special-casing).
-        XCTAssertEqual(first("`tk"), "ट्क")
+        // Capital T followed by another consonant still gets the
+        // general consonant-cluster halant rule.
+        XCTAssertEqual(first("Tk"), "ट्क")
     }
 
-    func testBacktickAloneFallsThrough() {
-        // A lone backtick with no following consonant token isn't a
-        // valid sigil — passes through verbatim so the user can recover.
-        XCTAssertEqual(first("`"), "`")
-        XCTAssertEqual(first("`x"), "`x")
+    func testCapitalRetroflexAlsoEmitsDentalAlternative() {
+        // The user's earlier `Dilip = दिलिप` example: typing the name
+        // with capital D produces both readings. User picks dental;
+        // the learner remembers it for next time.
+        let parses = all("Dilip")
+        XCTAssertTrue(parses.contains("डिलिप"),
+                      "expected retroflex reading डिलिप in \(parses)")
+        XCTAssertTrue(parses.contains("दिलिप"),
+                      "expected dental alt दिलिप in \(parses)")
     }
+
 }

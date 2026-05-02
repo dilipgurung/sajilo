@@ -38,8 +38,13 @@ public struct RuleTransliterator: Sendable {
 
     /// Returns up to `maxAlternatives` plausible Devanagari parses,
     /// deduped, longest-match default first. Empty array for empty input.
+    ///
+    /// Case is significant for retroflex disambiguation: `T/D/N/S/Th/Dh`
+    /// match the retroflex consonants (ट/ड/ण/ष/ठ/ढ) AND emit a dental
+    /// alternative as a multi-candidate parse. Other capital letters
+    /// (`K`, `M`, ...) silently fall back to their lowercase reading.
     public func transliterate(_ roman: String, maxAlternatives: Int = 4) -> [String] {
-        let chars = Array(roman.lowercased())
+        let chars = Array(roman)
         guard !chars.isEmpty else { return [] }
         var raw: [String] = []
         // Hard internal cap on enumeration to prevent worst-case
@@ -88,15 +93,26 @@ public struct RuleTransliterator: Sendable {
         }
 
         // Longest-match: try 3-char, 2-char, 1-char tokens.
+        // Vowels are case-insensitive (lookup uses lowercased key).
+        // Consonants try the as-typed key first so `T` finds the
+        // retroflex `T → ट`; if not found, fall back to lowercase so
+        // `K` still resolves via the lowercase `k → क` token.
         var matched: (kind: TokenKind, len: Int)? = nil
         for size in stride(from: 3, through: 1, by: -1) {
             guard pos + size <= chars.count else { continue }
             let key = String(chars[pos..<(pos + size)])
-            if let v = vowelTable[key] {
+            let lowerKey = key.lowercased()
+            if let v = vowelTable[lowerKey] {
                 matched = (.vowel(v), size); break
             }
             if let c = consonantTable[key] {
                 matched = (.consonant(key, c), size); break
+            }
+            if key != lowerKey, let c = consonantTable[lowerKey] {
+                // Capital letter w/o its own table entry — silently
+                // degrade to the lowercase reading. (Only retroflex
+                // T/D/N/S/Th/Dh have explicit uppercase entries.)
+                matched = (.consonant(lowerKey, c), size); break
             }
         }
 
@@ -170,6 +186,27 @@ public struct RuleTransliterator: Sendable {
                 cap: cap
             )
 
+            // Alternative: the matched token was uppercase (a retroflex
+            // like `T → ट`, `Th → ठ`) and a distinct lowercase pair
+            // exists in the table (`t → त`, `th → थ`). Emit the dental
+            // reading too so capital letters in proper-noun typing
+            // (`Dilip`) still surface the case-insensitive form
+            // alongside the retroflex.
+            let loweredRaw = raw.lowercased()
+            if loweredRaw != raw,
+               let dentalGlyph = consonantTable[loweredRaw],
+               dentalGlyph != glyph {
+                parse(
+                    chars: chars,
+                    pos: pos + m.len,
+                    output: output + prefix + dentalGlyph,
+                    lastConsonant: loweredRaw,
+                    prevWasExplicitVowel: false,
+                    results: &results,
+                    cap: cap
+                )
+            }
+
             // Alternative: trailing 'n'/'m' at end of buffer after an
             // explicit vowel sound → anusvara (ं) on previous syllable
             // instead of the consonant. Produces गैं for `gain`,
@@ -229,15 +266,13 @@ public struct RuleTransliterator: Sendable {
         "shr": "श्र",
         "chh": "छ",
 
-        // Retroflex sigils (`` `t ``, etc.) — the backtick lifts the next
-        // consonant from dental to retroflex. Allows ट/ठ/ड/ढ/ण/ष to be
-        // typed inline without changing case-insensitivity. Backtick was
-        // chosen over `.` because period is reserved for sentence-end +
-        // auto-danda.
-        "`th": "ठ",
-        "`dh": "ढ",
+        // 2-char retroflex aspirates (case-sensitive — capital letter
+        // marks retroflex, ITRANS convention). Both readings reach the
+        // candidate window via the dental-alternative branch.
+        "Th": "ठ",
+        "Dh": "ढ",
 
-        // 2-char aspirates / common digraphs.
+        // 2-char aspirates / common digraphs (lowercase = dental).
         "kh": "ख",
         "gh": "घ",
         "ng": "ङ",
@@ -251,13 +286,13 @@ public struct RuleTransliterator: Sendable {
         "sh": "श",
         "gy": "ज्ञ",
 
-        // 2-char retroflex sigils.
-        "`t": "ट",
-        "`d": "ड",
-        "`n": "ण",
-        "`s": "ष",
+        // Single-char retroflex consonants (capital letter convention).
+        "T": "ट",
+        "D": "ड",
+        "N": "ण",
+        "S": "ष",
 
-        // Single-char consonants.
+        // Single-char consonants (lowercase = dental).
         "k": "क", "g": "ग", "j": "ज",
         "t": "त", "d": "द", "n": "न",
         "p": "प", "f": "फ", "b": "ब",

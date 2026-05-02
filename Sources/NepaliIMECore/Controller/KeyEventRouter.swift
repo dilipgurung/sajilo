@@ -52,11 +52,7 @@ public enum KeyEventRouter {
         default: break
         }
 
-        // Letters and the retroflex sigil character (backtick) start /
-        // extend a composition. Backtick lifts the following consonant
-        // from dental to retroflex (`` `t ``→ट, `` `dh ``→ढ, etc.) inside
-        // the rule transliterator.
-        if first.isASCII, (first.isLetter || first == "`") {
+        if first.isASCII, first.isLetter {
             return .appendChar(first)
         }
 
@@ -73,8 +69,14 @@ public enum KeyEventRouter {
     }
 
     public static func classify(event: NSEvent, hasComposition: Bool) -> KeyAction {
+        // Use `characters` (not `charactersIgnoringModifiers`) so Shift
+        // produces the actual cased character — required for the
+        // capital-letter retroflex convention (Shift+t → "T" → ट).
+        // Special keys (arrows, Tab, Return, Esc, Backspace) come
+        // through identically in both, so behaviour for those is
+        // unchanged.
         classify(
-            characters: event.charactersIgnoringModifiers,
+            characters: event.characters,
             modifierFlags: event.modifierFlags,
             hasComposition: hasComposition
         )

@@ -293,9 +293,10 @@ corpus-mined inflected variants.
 
 ### Romanization scheme cheat sheet
 
-Case-insensitive — `Dilip` and `dilip` produce the same output.
-Default `t/d/n` is dental; use the backtick sigil for retroflex
-(see below) or pick a retroflex dict candidate.
+Lowercase consonants are dental (त/द/न/स). **Capital letters
+mark retroflex** — the ITRANS convention — and additionally emit
+the dental reading as a multi-candidate alternative so name typing
+like `Dilip` still gives दिलिप as a pickable candidate.
 
 | Roman | Devanagari | Roman | Devanagari |
 |---|---|---|---|
@@ -319,26 +320,24 @@ Default `t/d/n` is dental; use the backtick sigil for retroflex
 | `h` | ह | `ksh` | क्ष |
 | `gy` | ज्ञ | `shr` | श्र |
 
-**Retroflex sigil** (backtick prefix): backtick lifts the next
-consonant from dental to retroflex. Backtick is not used in
-ordinary text typing, so it's safe as a sigil — it's also exempt
-from the punctuation-commits rule (it joins the buffer instead of
-committing the current candidate).
+**Capital-letter retroflex** (ITRANS-style):
 
 | Roman | Devanagari | Roman | Devanagari |
 |---|---|---|---|
-| `` `t `` | ट | `` `th `` | ठ |
-| `` `d `` | ड | `` `dh `` | ढ |
-| `` `n `` | ण | `` `s `` | ष |
+| `T` | ट | `Th` | ठ |
+| `D` | ड | `Dh` | ढ |
+| `N` | ण | `S` | ष |
 
 Examples:
-- `` `tika `` → टिक (use `` `teeka `` to get टीका).
-- `` mi`thaai `` → मिठाइ (and मिठाई-ish via the long-vowel grammar).
-- `` da`kTar `` → दक्टर — actually use `` `daakTar `` for डाक्टर;
-  most retroflex words are also in the dictionary.
+- `Tika` → टिक (use `Teeka` for टीका).
+- `miThaai` → मिठाइ (with मिथाइ also in the candidate list).
+- `daakTar` → दाक्टर (with दाक्तर alternative).
+- `Dilip` → डिलिप is the default reading; दिलिप appears as the
+  alternative — pick it once and the learner remembers next time.
 
-A lone backtick with no following consonant token passes through
-verbatim, so accidentally typing `` ` `` doesn't break anything.
+Other capital letters (`K`, `M`, `P`, …) have no retroflex pair
+and silently fall back to their lowercase reading — no
+alternatives, no surprises.
 
 Adjacent consonants automatically get a halant inserted between
 them (`gar` → गर, `garchha` → गर्छ). Final consonant keeps its
