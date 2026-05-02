@@ -60,6 +60,14 @@ public enum KeyEventRouter {
             if let digit = first.wholeNumberValue, (1...9).contains(digit) {
                 return .selectIndex(digit - 1)
             }
+            // `\` and `*` are special transliteration tokens (halant,
+            // anusvara, chandrabindu) — pass them into the buffer so
+            // the rule transliterator can fold them into the candidate
+            // output. In idle they remain passThrough; the InputController
+            // handles direct-insert there.
+            if first == "\\" || first == "*" {
+                return .appendChar(first)
+            }
             if first.isASCII, !first.isLetter, !first.isWhitespace {
                 return .commitSelectedThenInsert(String(first))
             }

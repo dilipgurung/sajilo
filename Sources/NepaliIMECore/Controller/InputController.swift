@@ -74,11 +74,27 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         // (or one space past it). No commit-history tracking required —
         // works for words pasted in or typed in earlier sessions, not
         // just freshly-committed ones.
-        if !_state.hasBuffer,
-           event.characters == ".",
-           cursorIsAtEndOfDevanagariWord(client: sender) {
-            insertCommitted("।", client: sender)
-            return true
+        if !_state.hasBuffer {
+            let chars = event.characters ?? ""
+            // Period-to-danda: `.` after a Devanagari word (or one space
+            // past) becomes `।`.
+            if chars == ".", cursorIsAtEndOfDevanagariWord(client: sender) {
+                insertCommitted("।", client: sender)
+                return true
+            }
+            // Direct-insert combining marks for already-committed words:
+            // `\` adds halant, `*` adds anusvara to the previous akshara.
+            // Only fire when the cursor is RIGHT AFTER a Devanagari char
+            // (no space-past relaxation — combining marks attach
+            // directly to the akshara, not across whitespace).
+            if chars == "\\", charImmediatelyBeforeCursorIsDevanagari(client: sender) {
+                insertCommitted("्", client: sender)
+                return true
+            }
+            if chars == "*", charImmediatelyBeforeCursorIsDevanagari(client: sender) {
+                insertCommitted("ं", client: sender)
+                return true
+            }
         }
 
         let action = KeyEventRouter.classify(event: event, hasComposition: _state.hasBuffer)
@@ -129,6 +145,28 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         guard let scalar = c.unicodeScalars.first else { return false }
         let v = scalar.value
         return (0x0900...0x097F).contains(v) && v != 0x0964
+    }
+
+    /// Used by the idle `\`/`*` direct-insert paths: returns true when
+    /// the character immediately before the caret is in the Devanagari
+    /// block (any of it — combining marks can attach to anything we ever
+    /// produce). Stricter than `cursorIsAtEndOfDevanagariWord` because
+    /// halant/anusvara must touch the akshara directly, not across a
+    /// space.
+    @MainActor
+    private func charImmediatelyBeforeCursorIsDevanagari(client: Any?) -> Bool {
+        guard let textInput = client as? IMKTextInput else { return false }
+        let sel = textInput.selectedRange()
+        guard sel.location != NSNotFound, sel.location > 0 else { return false }
+
+        var actual = NSRange(location: 0, length: 0)
+        guard let s = textInput.string(
+            from: NSRange(location: sel.location - 1, length: 1),
+            actualRange: &actual
+        ), let c = s.first, let scalar = c.unicodeScalars.first else {
+            return false
+        }
+        return (0x0900...0x097F).contains(scalar.value)
     }
 
     @MainActor

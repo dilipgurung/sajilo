@@ -339,6 +339,29 @@ Other capital letters (`K`, `M`, `P`, …) have no retroflex pair
 and silently fall back to their lowercase reading — no
 alternatives, no surprises.
 
+**Special characters** (combining marks and word-start tokens) —
+type these *as part of the same composition that produced the word*,
+before committing. The candidate window updates after each keystroke.
+
+| Roman | Devanagari | Use |
+|---|---|---|
+| `\` | ्  (halant) | Suppresses the schwa of the previous consonant — `bas\` → बस् |
+| `*` | ं  (anusvara) | Nasalization on the previous akshara — `man*` → मनं |
+| `**` | ँ  (chandrabindu) | `kahaa**` → कहाँ |
+| `om` | ॐ  (Om) | Only at word start — `om` → ॐ (with ओम as alt) |
+| `yna` | ञ  (palatal nasal) | Alt: य्न |
+| `rri` | ऋ / ृ (vocalic R) | Alias for `ri` (also produces a split alt) |
+| `rree` | ॠ / ॄ (long vocalic R) | Alt: र्री |
+| `ksh` | क्ष | Already covered |
+| `gy` | ज्ञ | Already covered |
+
+For words you've **already committed** (or pasted), you can also
+use `\` and `*` in idle: position the caret right after a Devanagari
+character and type `\` to insert a halant or `*` to insert anusvara.
+Chandrabindu in idle isn't supported — it's a two-keystroke sequence
+that's awkward without a buffer; type the word from scratch with `**`
+inside instead.
+
 Adjacent consonants automatically get a halant inserted between
 them (`gar` → गर, `garchha` → गर्छ). Final consonant keeps its
 inherent schwa (Nepali convention — `dilip` → दिलिप, not दिलिप्).

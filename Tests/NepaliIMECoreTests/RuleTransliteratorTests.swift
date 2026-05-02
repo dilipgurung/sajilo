@@ -237,6 +237,80 @@ final class RuleTransliteratorTests: XCTestCase {
         XCTAssertEqual(first("Tk"), "ट्क")
     }
 
+    // MARK: - Halant via `\`
+
+    func testHalantSuppressesSchwa() {
+        // `bas\` = b + a-schwa + s + halant → बस्.
+        XCTAssertEqual(first("bas\\"), "बस्")
+    }
+
+    func testHalantBetweenConsonantsClusters() {
+        // `bas\m` = बस् + म (no auto-halant since user already
+        // explicitly halanted s, and lastConsonant resets).
+        XCTAssertEqual(first("bas\\m"), "बस्म")
+    }
+
+    // MARK: - Anusvara via `*` and chandrabindu via `**`
+
+    func testAnusvaraAttachesToPrevious() {
+        // `man*` = म + n-schwa + ं → मनं.
+        XCTAssertEqual(first("man*"), "मनं")
+    }
+
+    func testChandrabindu() {
+        // `**` is a 2-char token, longest-match wins over `*`.
+        // `kahaa**` → क + ा + h + ा + ँ (chandrabindu after long-aa).
+        let parses = all("kahaa**")
+        XCTAssertTrue(parses.contains("कहाँ"),
+                      "expected कहाँ in \(parses)")
+    }
+
+    // MARK: - Word-start `om → ॐ` (multi-candidate)
+
+    func testOmAtWordStartProducesBothReadings() {
+        let parses = all("om")
+        XCTAssertTrue(parses.contains("ॐ"),  "expected ॐ in \(parses)")
+        XCTAssertTrue(parses.contains("ओम"), "expected ओम in \(parses)")
+    }
+
+    func testOmMidWordIsJustOM() {
+        // `kom` mid-word — not at pos 0, so word-start special doesn't
+        // fire. We only get the natural k-o-m parse (कोम), plus any
+        // anusvara branch on trailing m (कों).
+        let parses = all("kom")
+        XCTAssertTrue(parses.contains("कोम"), "expected कोम in \(parses)")
+        XCTAssertFalse(parses.contains(where: { $0.contains("ॐ") }),
+                       "ॐ should NOT appear mid-word in \(parses)")
+    }
+
+    // MARK: - `yna` and split alternative
+
+    func testYnaProducesPalatalNasal() {
+        let parses = all("yna")
+        XCTAssertTrue(parses.contains("ञ"),  "expected ञ in \(parses)")
+        XCTAssertTrue(parses.contains("य्न"), "expected split य्न in \(parses)")
+    }
+
+    // MARK: - `rri / rree` aliases for vocalic R
+
+    func testRriIsVocalicR() {
+        // `rri` independent vocalic R, plus a multi-candidate split alt.
+        let parses = all("rri")
+        XCTAssertTrue(parses.contains("ऋ"), "expected ऋ in \(parses)")
+    }
+
+    func testRreeIsLongVocalicR() {
+        let parses = all("rree")
+        XCTAssertTrue(parses.contains("ॠ"), "expected ॠ in \(parses)")
+    }
+
+    func testRriMatraAfterConsonant() {
+        // `krri` = क + ृ matra (with the multi-candidate split alt also
+        // produced — at minimum, कृ should be in the parse list).
+        let parses = all("krri")
+        XCTAssertTrue(parses.contains("कृ"), "expected कृ in \(parses)")
+    }
+
     func testCapitalRetroflexAlsoEmitsDentalAlternative() {
         // The user's earlier `Dilip = दिलिप` example: typing the name
         // with capital D produces both readings. User picks dental;

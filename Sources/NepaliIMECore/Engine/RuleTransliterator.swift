@@ -92,18 +92,41 @@ public struct RuleTransliterator: Sendable {
             return
         }
 
-        // Longest-match: try 3-char, 2-char, 1-char tokens.
-        // Vowels are case-insensitive (lookup uses lowercased key).
-        // Consonants try the as-typed key first so `T` finds the
-        // retroflex `T → ट`; if not found, fall back to lowercase so
-        // `K` still resolves via the lowercase `k → क` token.
+        // Word-start specials (currently just `om → ॐ`). Emitted as a
+        // multi-candidate alternative — also fall through to normal
+        // parsing so `ओम` shows up as the second reading.
+        if pos == 0 {
+            for size in stride(from: 3, through: 2, by: -1) {
+                guard pos + size <= chars.count else { continue }
+                let key = String(chars[pos..<(pos + size)]).lowercased()
+                if let glyph = Self._wordStartSpecial[key] {
+                    parse(
+                        chars: chars, pos: pos + size,
+                        output: output + glyph,
+                        lastConsonant: nil,
+                        prevWasExplicitVowel: false,
+                        results: &results, cap: cap
+                    )
+                    break
+                }
+            }
+        }
+
+        // Longest-match: try 4-char (rree), 3-char, 2-char, 1-char tokens.
+        // Vowels and special tokens are case-insensitive. Consonants
+        // try the as-typed key first so `T` finds retroflex `T → ट`;
+        // if not found, fall back to lowercase so `K` still resolves
+        // via the lowercase `k → क` token.
         var matched: (kind: TokenKind, len: Int)? = nil
-        for size in stride(from: 3, through: 1, by: -1) {
+        for size in stride(from: 4, through: 1, by: -1) {
             guard pos + size <= chars.count else { continue }
             let key = String(chars[pos..<(pos + size)])
             let lowerKey = key.lowercased()
+            if let glyph = specialTable[lowerKey] {
+                matched = (.special(glyph), size); break
+            }
             if let v = vowelTable[lowerKey] {
-                matched = (.vowel(v), size); break
+                matched = (.vowel(lowerKey, v), size); break
             }
             if let c = consonantTable[key] {
                 matched = (.consonant(key, c), size); break
@@ -131,7 +154,21 @@ public struct RuleTransliterator: Sendable {
         }
 
         switch m.kind {
-        case .vowel(let v):
+        case .special(let glyph):
+            // Combining marks (\, *, **) attach to the previous akshara
+            // and don't participate in halant/matra logic. Emit raw and
+            // continue with no consonant context.
+            parse(
+                chars: chars,
+                pos: pos + m.len,
+                output: output + glyph,
+                lastConsonant: nil,
+                prevWasExplicitVowel: false,
+                results: &results,
+                cap: cap
+            )
+
+        case .vowel(let key, let v):
             // Default emission: matra after consonant, independent otherwise.
             if lastConsonant != nil {
                 parse(
@@ -170,6 +207,24 @@ public struct RuleTransliterator: Sendable {
                     results: &results,
                     cap: cap
                 )
+            }
+
+            // Alternative: 'rri' / 'rree' have a meaningful split reading
+            // (r + (halant) + r + i-matra) alongside the vocalic-R default.
+            if (key == "rri" || key == "rree"), m.len > 1 {
+                let firstKey = String(chars[pos]).lowercased()
+                if let firstGlyph = consonantTable[firstKey] {
+                    let prefix = (lastConsonant != nil) ? "्" : ""
+                    parse(
+                        chars: chars,
+                        pos: pos + 1,
+                        output: output + prefix + firstGlyph,
+                        lastConsonant: firstKey,
+                        prevWasExplicitVowel: false,
+                        results: &results,
+                        cap: cap
+                    )
+                }
             }
 
         case .consonant(let raw, let glyph):
@@ -224,14 +279,36 @@ public struct RuleTransliterator: Sendable {
                     cap: cap
                 )
             }
+
+            // Alternative: a multi-char consonant token whose first
+            // character is itself a consonant gets a "split" reading
+            // (take just char[0] as a separate consonant, recurse).
+            // Currently only `yna` (default ञ, alt य्न) — other
+            // multi-char tokens like `kh`, `ksh`, `chh` have unambiguous
+            // intended readings and would just create noise if split.
+            if Self._splitAlternativeTokens.contains(raw), m.len > 1 {
+                let firstKey = String(chars[pos]).lowercased()
+                if let firstGlyph = consonantTable[firstKey] {
+                    parse(
+                        chars: chars,
+                        pos: pos + 1,
+                        output: output + prefix + firstGlyph,
+                        lastConsonant: firstKey,
+                        prevWasExplicitVowel: false,
+                        results: &results,
+                        cap: cap
+                    )
+                }
+            }
         }
     }
 
     // MARK: - Token tables
 
     private enum TokenKind {
-        case vowel(VowelGlyph)
-        case consonant(String, String)  // (raw key, devanagari glyph)
+        case vowel(String, VowelGlyph)         // (raw key, glyph forms)
+        case consonant(String, String)         // (raw key, devanagari glyph)
+        case special(String)                   // raw glyph to emit (combining mark / fixed char)
     }
 
     private struct VowelGlyph {
@@ -241,7 +318,13 @@ public struct RuleTransliterator: Sendable {
 
     private var vowelTable: [String: VowelGlyph] { Self._vowelTable }
     private static let _vowelTable: [String: VowelGlyph] = [
-        // 2-char digraphs are matched first by the longest-match loop.
+        // 3-char vocalic R (long). Multi-candidate alt: `r` + halant + `r` + `i`-matra.
+        "rree": VowelGlyph(independent: "ॠ", matra: "ॄ"),
+
+        // 3-char vocalic R (short, ITRANS-style — alongside `ri`).
+        "rri": VowelGlyph(independent: "ऋ", matra: "ृ"),
+
+        // 2-char digraphs are matched after 3-char tokens.
         "aa": VowelGlyph(independent: "आ", matra: "ा"),
         "ee": VowelGlyph(independent: "ई", matra: "ी"),
         "ii": VowelGlyph(independent: "ई", matra: "ी"),
@@ -259,12 +342,39 @@ public struct RuleTransliterator: Sendable {
         "o": VowelGlyph(independent: "ओ", matra: "ो"),
     ]
 
+    /// Combining marks and other "raw glyph" tokens — emitted verbatim
+    /// without halant/matra logic. The user types these explicitly to
+    /// modify whatever was emitted before them.
+    private var specialTable: [String: String] { Self._specialTable }
+    private static let _specialTable: [String: String] = [
+        "**": "ँ",   // chandrabindu (matched first by longest-match)
+        "\\": "्",  // halant — suppresses previous consonant's schwa
+        "*":  "ं",   // anusvara
+    ]
+
+    /// Tokens that are only meaningful at the start of the buffer (= the
+    /// beginning of a word in normal IME usage). Emitted as a multi-
+    /// candidate alternative; normal parsing also runs so the
+    /// alternative interpretation appears in the candidate list.
+    private static let _wordStartSpecial: [String: String] = [
+        "om": "ॐ",
+    ]
+
+    /// Multi-char consonant tokens that ALSO emit a "split into single
+    /// letters" reading as a multi-candidate alternative. Most such
+    /// tokens (`kh`, `ksh`, `chh`) have unambiguous standard readings
+    /// and don't warrant the noise. Currently just `yna` (ञ vs य्न).
+    private static let _splitAlternativeTokens: Set<String> = ["yna"]
+
     private var consonantTable: [String: String] { Self._consonantTable }
     private static let _consonantTable: [String: String] = [
         // 3-char compound consonants.
         "ksh": "क्ष",
         "shr": "श्र",
         "chh": "छ",
+
+        // 3-char palatal nasal token. Multi-candidate alt: y + halant + n + a.
+        "yna": "ञ",
 
         // 2-char retroflex aspirates (case-sensitive — capital letter
         // marks retroflex, ITRANS convention). Both readings reach the

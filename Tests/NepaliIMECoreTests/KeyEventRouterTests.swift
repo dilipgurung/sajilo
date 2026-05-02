@@ -56,6 +56,18 @@ final class KeyEventRouterTests: XCTestCase {
         XCTAssertEqual(classify(".", composing: true), .commitSelectedThenInsert("."))
     }
 
+    func testBackslashAndAsteriskAppendInsteadOfCommitMidComposition() {
+        // `\` and `*` are halant / anusvara sigils — they must enter the
+        // buffer so the rule transliterator can fold them, not trigger
+        // the punctuation commit-then-insert rule.
+        XCTAssertEqual(classify("\\", composing: true), .appendChar("\\"))
+        XCTAssertEqual(classify("*",  composing: true), .appendChar("*"))
+        // In idle they pass through normally — the InputController
+        // handles direct-insert for already-committed words.
+        XCTAssertEqual(classify("\\", composing: false), .passThrough)
+        XCTAssertEqual(classify("*",  composing: false), .passThrough)
+    }
+
 
     func testCommandKeyChordPassesThrough() {
         let action = KeyEventRouter.classify(
