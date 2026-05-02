@@ -63,7 +63,7 @@
                 <key>tsInputModeMenuIconFileKey</key>
                 <string>MenuIcon.pdf</string>
                 <key>tsInputModePaletteIconFileKey</key>
-                <string>MenuIcon.pdf</string>
+                <string>PaletteIcon.pdf</string>
                 <key>tsInputModePrimaryInScriptKey</key>
                 <true/>
                 <key>tsInputModeScriptKey</key>

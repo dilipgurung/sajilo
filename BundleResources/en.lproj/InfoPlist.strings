@@ -1,6 +1,6 @@
-/* Bundle */
-"CFBundleName" = "Nepali IME";
-"CFBundleDisplayName" = "Nepali IME";
+/* Bundle — display in Devanagari for all locales */
+"CFBundleName" = "नेपाली IME";
+"CFBundleDisplayName" = "नेपाली IME";
 
 /* Input modes — keys must match TISInputSourceID values from ComponentInputModeDict */
-"com.gurungdilip.inputmethod.NepaliIME.Nepali" = "Nepali";
+"com.gurungdilip.inputmethod.NepaliIME.Nepali" = "नेपाली";

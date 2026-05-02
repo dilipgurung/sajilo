@@ -36,6 +36,10 @@ if [[ -f "$ROOT_DIR/BundleResources/MenuIcon.pdf" ]]; then
     cp "$ROOT_DIR/BundleResources/MenuIcon.pdf" "$RESOURCES_DIR/MenuIcon.pdf"
 fi
 
+if [[ -f "$ROOT_DIR/BundleResources/PaletteIcon.pdf" ]]; then
+    cp "$ROOT_DIR/BundleResources/PaletteIcon.pdf" "$RESOURCES_DIR/PaletteIcon.pdf"
+fi
+
 # Copy localized strings (each *.lproj/ supplies localized display names
 # for CFBundleName, CFBundleDisplayName, and the input mode IDs declared in
 # ComponentInputModeDict).
