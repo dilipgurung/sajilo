@@ -61,6 +61,32 @@ def load_aksharantar(path: Path) -> dict[str, set[str]]:
     return out
 
 
+def load_seed(path: Path, default_freq: int) -> dict[tuple[str, str], int]:
+    """Read a hand-curated lemma TSV: roman<TAB>deva<TAB>optional_freq."""
+    out: dict[tuple[str, str], int] = {}
+    if not path.exists():
+        return out
+    with path.open(encoding="utf-8") as fh:
+        for line in fh:
+            line = line.rstrip("\n")
+            if not line or line.startswith("#"):
+                continue
+            parts = line.split("\t")
+            if len(parts) < 2:
+                continue
+            roman = parts[0].strip().lower()
+            deva = unicodedata.normalize("NFC", parts[1].strip())
+            if not roman or not deva:
+                continue
+            try:
+                freq = int(parts[2]) if len(parts) >= 3 and parts[2].strip() else default_freq
+            except ValueError:
+                freq = default_freq
+            key = (roman, deva)
+            out[key] = max(out.get(key, 0), freq)
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--work-dir", type=Path, default=Path("work/corpus"))
@@ -70,6 +96,17 @@ def main() -> int:
     )
     ap.add_argument("--target-words", type=int, default=30000,
                     help="Stop after N distinct Devanagari headwords.")
+    ap.add_argument(
+        "--seed", type=Path,
+        default=Path("scripts/corpus/lemma_seed.tsv"),
+        help="Hand-curated lemma seed TSV; overlaid on top of Aksharantar.",
+    )
+    ap.add_argument(
+        "--seed-default-freq", type=int, default=100000,
+        help="Default frequency for seed rows missing column 3 "
+             "(picked > Wikipedia top freq so seeded lemmas outrank "
+             "corpus-mined inflected forms).",
+    )
     args, _unknown = ap.parse_known_args()
 
     freq_path = args.work_dir / "frequencies.tsv"
@@ -87,7 +124,9 @@ def main() -> int:
     aks = load_aksharantar(aks_path)
     print(f"[build] {len(aks):,} Devanagari headwords with Aksharantar pairs")
 
-    rows: list[tuple[str, str, int]] = []
+    # Aggregate (roman, deva) -> max frequency, so dupes collapse and the
+    # higher of (Aksharantar-from-Wikipedia-rank, seed-frequency) wins.
+    pairs: dict[tuple[str, str], int] = {}
     headwords_emitted = 0
     miss_count = 0
     for deva, count in frequencies:
@@ -99,10 +138,26 @@ def main() -> int:
             miss_count += 1
             continue
         for roman in variants:
-            rows.append((roman, deva_n, count))
+            key = (roman, deva_n)
+            pairs[key] = max(pairs.get(key, 0), count)
         headwords_emitted += 1
 
-    rows.sort(key=lambda r: (-r[2], r[0]))
+    seed = load_seed(args.seed, args.seed_default_freq)
+    seed_added = 0
+    seed_overrode = 0
+    for key, freq in seed.items():
+        if key in pairs:
+            if freq > pairs[key]:
+                seed_overrode += 1
+                pairs[key] = freq
+        else:
+            seed_added += 1
+            pairs[key] = freq
+
+    rows = sorted(
+        ((r, d, f) for (r, d), f in pairs.items()),
+        key=lambda r: (-r[2], r[0]),
+    )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w", encoding="utf-8") as fh:
@@ -112,11 +167,15 @@ def main() -> int:
         for roman, deva, freq in rows:
             fh.write(f"{roman}\t{deva}\t{freq}\n")
 
+    unique_headwords = len({d for (_r, d), _ in pairs.items()})
     print(f"[build] wrote {len(rows):,} rows "
-          f"({headwords_emitted:,} headwords) to {args.out}")
+          f"({unique_headwords:,} unique headwords) to {args.out}")
+    if seed_added or seed_overrode:
+        print(f"[build] seed: +{seed_added:,} new pairs, "
+              f"{seed_overrode:,} frequency boosts on existing pairs")
     if miss_count:
         print(f"[build] {miss_count:,} ranked words had no Aksharantar coverage "
-              "(skipped — would need IndicXlit gap-fill to recover)")
+              "(skipped — could be filled with IndicXlit later)")
     return 0
 
 

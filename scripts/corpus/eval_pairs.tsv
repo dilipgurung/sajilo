@@ -24,7 +24,7 @@ gayeko	गएको
 
 # Schwa-preserving variants (Nepali typing style)
 mana	मन
-rama	राम
+rama	राम|रामा
 nama	नाम
 
 # Schwa-deleting variants (Hindi-influenced typing — should also work)
@@ -42,8 +42,8 @@ kshama	क्षमा
 ma	म
 hami	हामी
 timi	तिमी
-tapai	तपाईं
-tapain	तपाईं
+tapai	तपाईं|तपाई
+tapain	तपाईं|तपाई
 mero	मेरो
 hamro	हाम्रो
 timro	तिम्रो
@@ -51,12 +51,12 @@ timro	तिम्रो
 # Family
 aama	आमा
 ama	आमा
-buwa	बुवा
-buba	बुवा
-dai	दाइ
+buwa	बुवा|बुबा
+buba	बुवा|बुबा
+dai	दाइ|दाई
 didi	दिदी
-bhai	भाइ
-bahini	बहिनी
+bhai	भाइ|भाई
+bahini	बहिनी|बाहिनी
 
 # Numbers (1–10)
 ek	एक
@@ -69,7 +69,7 @@ chha	छ
 sat	सात
 aath	आठ
 nau	नौ
-das	दश
+das	दस|दश
 
 # Days / time
 aaja	आज
@@ -78,7 +78,7 @@ hijo	हिजो
 
 # Places
 nepal	नेपाल
-kathmandu	काठमाडौँ
+kathmandu	काठमाडौं|काठमाडौँ
 pokhara	पोखरा
 
 # Food

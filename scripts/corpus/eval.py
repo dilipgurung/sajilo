@@ -34,7 +34,11 @@ def load_dict(path: Path) -> dict[str, set[str]]:
     return out
 
 
-def load_pairs(path: Path) -> list[tuple[str, str]]:
+def load_pairs(path: Path) -> list[tuple[str, list[str]]]:
+    """Each pair is (roman, [accepted_devanagari, ...]).
+    Multiple accepted spellings are written pipe-separated:
+        buba<TAB>बुवा|बुबा
+    """
     pairs = []
     with path.open(encoding="utf-8") as fh:
         for line in fh:
@@ -45,9 +49,13 @@ def load_pairs(path: Path) -> list[tuple[str, str]]:
             if len(parts) < 2:
                 continue
             roman = parts[0].strip().lower()
-            deva = unicodedata.normalize("NFC", parts[1].strip())
-            if roman and deva:
-                pairs.append((roman, deva))
+            accepted = [
+                unicodedata.normalize("NFC", v.strip())
+                for v in parts[1].split("|")
+                if v.strip()
+            ]
+            if roman and accepted:
+                pairs.append((roman, accepted))
     return pairs
 
 
@@ -69,21 +77,22 @@ def main() -> int:
 
     misses = []
     hits = 0
-    for roman, expected in pairs:
+    for roman, accepted in pairs:
         outputs = dict_map.get(roman, set())
-        if expected in outputs:
+        if any(a in outputs for a in accepted):
             hits += 1
         else:
-            misses.append((roman, expected, outputs))
+            misses.append((roman, accepted, outputs))
 
     total = len(pairs)
     print(f"[eval] {hits}/{total} pairs found "
           f"({(100 * hits / total) if total else 0:.1f}%)")
     if misses:
         print(f"[eval] {len(misses)} miss(es):")
-        for roman, expected, actual in misses:
+        for roman, accepted, actual in misses:
+            expected_str = " | ".join(accepted)
             actual_str = ", ".join(sorted(actual)) if actual else "(no entry)"
-            print(f"        {roman!r:>16}  expected {expected}  "
+            print(f"        {roman!r:>16}  expected {expected_str}  "
                   f"got: {actual_str}")
         return 1
     return 0

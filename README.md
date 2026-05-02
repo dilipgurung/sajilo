@@ -45,32 +45,81 @@ If you only want the bundle without installing it:
 
 ## Build the real dictionary (recommended after first install)
 
-The default bundle ships with only ~150 starter words. To get a real
-~30k-headword dictionary built from AI4Bharat's Aksharantar dataset
-ranked by Nepali Wikipedia frequency:
+The default bundle ships with only ~150 starter words. The corpus
+pipeline produces a ~30k-headword dictionary by combining three sources:
+
+1. **AI4Bharat Aksharantar** (~2.4M Nepali pairs, CC0 + CC-BY) — gives
+   romanizations for inflected/conjugated word forms.
+2. **Nepali Wikipedia frequency list** (CC-BY-SA) — ranks which
+   Devanagari headwords actually ship in the bundle.
+3. **`scripts/corpus/lemma_seed.tsv`** (hand-curated, ~250 entries) —
+   backfills bare lemmas (नेपाल, छ, हो, common verb conjugations,
+   numbers, days/months, greetings) that Aksharantar lacks because it
+   was mined from running text without lemmatization. Edit this file
+   to add words you find missing during real-world typing.
+
+### Quick start
 
 ```bash
-# Smoke test first (~2 min, builds a few-hundred-word dict)
-./scripts/corpus/run_all.sh --top 500
-
-# Full build (~10 min, ~700MB cache under work/ + ~/.cache/huggingface/)
+# One-shot: venv setup + all 4 steps + eval (~10 min, ~700MB cache)
 ./scripts/corpus/run_all.sh
 
-# Rebuild + reinstall the IME with the new dictionary
+# Then rebuild + reinstall the IME with the new dictionary
 ./scripts/install.sh
 ```
 
-Individual steps (each is idempotent and cached under `work/corpus/`):
+Expected end-state: `BundleResources/system_dict.tsv` ≈ 30k rows
+across ~29k unique Devanagari headwords; eval reports **68/68 pairs
+found (100.0%)**.
+
+### Smoke test before the full run
 
 ```bash
-.venv-corpus/bin/python scripts/corpus/fetch_wiki_freq.py    # → frequencies.tsv
-.venv-corpus/bin/python scripts/corpus/fetch_aksharantar.py  # → aksharantar_nep.tsv
+./scripts/corpus/run_all.sh --top 500
+```
+
+Only processes the top 500 Wikipedia frequencies. Eval will report
+~16/68 hits (Wikipedia's top-500 is encyclopedia-skewed and misses
+greetings/copulas) — this is expected for a smoke test and confirms
+the pipeline plumbing works.
+
+### Individual steps
+
+Each step is idempotent and caches its output under `work/corpus/`,
+so re-running is fast unless you delete the cache.
+
+```bash
+.venv-corpus/bin/python scripts/corpus/fetch_wiki_freq.py    # → work/corpus/frequencies.tsv
+.venv-corpus/bin/python scripts/corpus/fetch_aksharantar.py  # → work/corpus/aksharantar_nep.tsv
 .venv-corpus/bin/python scripts/corpus/build_dict.py         # → BundleResources/system_dict.tsv
 .venv-corpus/bin/python scripts/corpus/eval.py               # regression check
 ```
 
-See [`scripts/corpus/README.md`](scripts/corpus/README.md) for full details
-(data sources, licensing, eval set, coverage gap recovery).
+### Extending the lemma seed
+
+If `eval.py` reports a miss for a word you actually use, add it to
+`scripts/corpus/lemma_seed.tsv`:
+
+```
+# Format: roman<TAB>devanagari<TAB>optional_frequency
+your_word	तपाईंको_देवनागरी
+```
+
+Default frequency is 100,000 (above Wikipedia's top-frequency words
+~38,000) so seeded lemmas always outrank corpus-mined inflected
+variants. Then re-run `build_dict.py` (no need to re-fetch sources)
+and `install.sh`.
+
+For multiple valid Devanagari spellings of the same Roman input, use
+`|`-separated alternatives in `eval_pairs.tsv`:
+
+```
+buba	बुवा|बुबा
+```
+
+See [`scripts/corpus/README.md`](scripts/corpus/README.md) for full
+details (data sources, licensing, troubleshooting, optional IndicXlit
+gap-fill for words still missing from the dict).
 
 ## Composition behaviour
 
