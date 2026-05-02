@@ -160,7 +160,7 @@ gap-fill for words still missing from the dict).
 | Latin letters | Append to buffer; refresh candidates |
 | Backspace | Trim buffer (or exit composition if empty) |
 | Space | Commit selected candidate, then insert literal space |
-| Return | Commit the raw Roman buffer (no conversion) |
+| Return | Commit selected candidate, then insert newline |
 | Escape | Cancel composition |
 | Tab | Commit candidate #1 |
 | Digits 1–9 | Commit candidate at that index |

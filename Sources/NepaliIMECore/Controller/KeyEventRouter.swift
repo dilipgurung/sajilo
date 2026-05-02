@@ -5,7 +5,6 @@ public enum KeyAction: Sendable, Equatable {
     case appendChar(Character)
     case backspace
     case commitSelected
-    case commitRaw
     case cancel
     case selectIndex(Int)
     case moveSelection(Int)
@@ -33,7 +32,12 @@ public enum KeyEventRouter {
         case " ":
             return hasComposition ? .commitSelected : .passThrough
         case "\r", "\u{3}":
-            return hasComposition ? .commitRaw : .passThrough
+            // Return commits the currently-selected candidate (matching
+            // Space and Tab). Falls back to raw-buffer insert internally
+            // when no candidates exist (commitSelectedAndReset's empty
+            // case), so users still get a sensible result for English
+            // typed in idle.
+            return hasComposition ? .commitSelected : .passThrough
         case "\u{1B}":
             return hasComposition ? .cancel : .passThrough
         case "\t":

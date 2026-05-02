@@ -116,9 +116,6 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         case .commitSelected:
             commitSelectedAndReset(client: client)
             return false
-        case .commitRaw:
-            commitRawAndReset(client: client)
-            return true
         case .cancel:
             clearMarkedText(client: client)
             _state = .idle
