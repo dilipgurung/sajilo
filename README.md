@@ -78,6 +78,28 @@ postinstall hook that pokes `TextInputMenuAgent` so macOS rescans
 input sources. UI screens come from `scripts/pkg_resources/`. Output
 is per-user only (lands in `~/Library/Input Methods/`, no sudo).
 
+## Uninstall
+
+```bash
+./scripts/uninstall.sh              # interactive — asks before deleting user data
+./scripts/uninstall.sh --keep-data  # remove the .app, preserve user dict + learner DB
+./scripts/uninstall.sh --all        # nuke everything without prompting
+```
+
+The script removes `~/Library/Input Methods/NepaliIME.app`, kills any
+running IME instance, restarts the input agents so System Settings
+re-scans, and (with confirmation) wipes
+`~/Library/Application Support/NepaliIME/` (which holds
+`user_dict.tsv`, `learner.sqlite`, and the trie cache). After it
+finishes, open System Settings → Keyboard → Text Input → Edit
+(Input Sources) and click `−` on the now-stale "Nepali IME" entry
+to fully forget it.
+
+For end-users who installed via the `.pkg` and don't have the repo
+checked out: drag `~/Library/Input Methods/NepaliIME.app` to the
+Trash, then optionally remove `~/Library/Application Support/NepaliIME/`
+to clean up your learned data.
+
 ## Build the real dictionary (recommended after first install)
 
 The default bundle ships with only ~150 starter words. The corpus
@@ -425,6 +447,7 @@ BundleResources/           # Info.plist, system_dict.tsv, icons, lproj strings
 scripts/
 ├── bundle.sh              # swift build → .app bundle, ad-hoc signed
 ├── install.sh             # bundle.sh + cp to ~/Library/Input Methods/
+├── uninstall.sh           # remove the .app and (optionally) user data
 ├── make_pkg.sh            # bundle.sh + pkgbuild + productbuild → .pkg
 ├── make_icon.swift        # regenerate MenuIcon.icns + PaletteIcon.icns
 ├── corpus/                # Python pipeline to regenerate system_dict.tsv
