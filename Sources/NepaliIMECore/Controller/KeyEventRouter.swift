@@ -4,7 +4,8 @@ import AppKit
 public enum KeyAction: Sendable, Equatable {
     case appendChar(Character)
     case backspace
-    case commitSelected
+    case commitSelected            // commit, let the originating key char through (Space)
+    case commitSelectedAndEat      // commit, swallow the originating key char (Return)
     case cancel
     case selectIndex(Int)
     case moveSelection(Int)
@@ -33,11 +34,11 @@ public enum KeyEventRouter {
             return hasComposition ? .commitSelected : .passThrough
         case "\r", "\u{3}":
             // Return commits the currently-selected candidate (matching
-            // Space and Tab). Falls back to raw-buffer insert internally
-            // when no candidates exist (commitSelectedAndReset's empty
-            // case), so users still get a sensible result for English
-            // typed in idle.
-            return hasComposition ? .commitSelected : .passThrough
+            // Space and Tab) and SWALLOWS the newline — caret lands
+            // immediately after the committed word, no line break.
+            // Falls back to raw-buffer insert internally when no
+            // candidates exist (commitSelectedAndReset's empty case).
+            return hasComposition ? .commitSelectedAndEat : .passThrough
         case "\u{1B}":
             return hasComposition ? .cancel : .passThrough
         case "\t":

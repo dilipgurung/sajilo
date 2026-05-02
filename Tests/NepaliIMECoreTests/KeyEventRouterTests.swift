@@ -19,8 +19,8 @@ final class KeyEventRouterTests: XCTestCase {
         XCTAssertEqual(classify(" ", composing: true), .commitSelected)
     }
 
-    func testReturnCommitsSelectedWhenComposing() {
-        XCTAssertEqual(classify("\r", composing: true), .commitSelected)
+    func testReturnCommitsSelectedAndEatsKeyWhenComposing() {
+        XCTAssertEqual(classify("\r", composing: true), .commitSelectedAndEat)
     }
 
     func testEscapeCancelsWhenComposing() {

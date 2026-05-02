@@ -160,7 +160,7 @@ gap-fill for words still missing from the dict).
 | Latin letters | Append to buffer; refresh candidates |
 | Backspace | Trim buffer (or exit composition if empty) |
 | Space | Commit selected candidate, then insert literal space |
-| Return | Commit selected candidate, then insert newline |
+| Return | Commit selected candidate; caret stays at end of word (no newline inserted) |
 | Escape | Cancel composition |
 | Tab | Commit candidate #1 |
 | Digits 1–9 | Commit candidate at that index |
@@ -170,18 +170,21 @@ gap-fill for words still missing from the dict).
 
 ## Period-to-danda auto-conversion
 
-If you type `.` immediately after committing a Devanagari candidate
-(within ~1.5 seconds), the period is converted to `।` — the
-Devanagari danda, which serves as the Nepali full stop. Examples:
+When the caret is sitting **right after** a Devanagari word — or at
+**most one space past it** — typing `.` is converted to `।`, the
+Devanagari danda used as the Nepali full stop. Examples:
 
-- `namaste<Space>.` → `नमस्ते ।`
 - `dilip.` → `दिलिप।` (the `.` mid-composition path also converts)
-- `namaste<Space>` … *wait 5 seconds* … `.` → `नमस्ते .` (window
-  expired; period passes through unchanged)
+- `namaste<Space>.` → `नमस्ते ।` (one space — still in range)
+- `namaste<Space><Space>.` → `नमस्ते  .` (two spaces — out of range,
+  period passes through unchanged)
+- `namaste<Space>hi.` → `नमस्ते hi.` (typed a non-space char after
+  the word; the danda window closed)
 
-The window is short on purpose: it lets you write Nepali sentences
-naturally without hijacking your `.` when the input source is left
-on while you're typing English.
+There's no time component — what matters is position. So you can pause
+to think between typing the word and typing the period; the danda will
+still fire as long as you haven't moved the caret or typed anything
+that takes you further than one space past the word.
 
 ## Rule-based candidate fallback
 
