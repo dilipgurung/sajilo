@@ -10,7 +10,6 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     nonisolated(unsafe) private var _state: CompositionState = .idle
     nonisolated(unsafe) private var _panel: CandidateWindow?
     nonisolated(unsafe) private var _lookupToken: UInt64 = 0
-    private let transliterator = RuleTransliterator()
 
     public override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
         super.init(server: server, delegate: delegate, client: inputClient)
@@ -209,26 +208,21 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     @MainActor
     private func showMarkedText(buffer: String, client: Any?) {
         guard let textInput = client as? IMKTextInput else { return }
-        // Live preview: render the in-progress Roman buffer as Devanagari
-        // via the rule grammar. Falls back to the raw Roman buffer if the
-        // transliterator produced nothing usable (empty / unchanged).
-        let preview = transliterator.transliterate(buffer)
-        let displayed = (preview.isEmpty || preview == buffer) ? buffer : preview
+        // Marked text stays as the raw Roman buffer while composing — the
+        // user sees what they typed. Devanagari renderings live in the
+        // candidate window (including the rule-transliterated fallback)
+        // and only land in the document when a candidate is committed.
         let attributed = NSAttributedString(
-            string: displayed,
+            string: buffer,
             attributes: [
                 .underlineStyle: NSUnderlineStyle.single.rawValue,
                 .underlineColor: NSColor.labelColor,
                 .foregroundColor: NSColor.labelColor,
             ]
         )
-        // IMK selectionRange is in UTF-16 units (NSString length), NOT Swift
-        // grapheme clusters. For Devanagari, "दिलिप".count == 3 but
-        // (...as NSString).length == 5 — using .count places the caret in
-        // the middle of the marked text and Space then breaks the word.
         textInput.setMarkedText(
             attributed,
-            selectionRange: NSRange(location: (displayed as NSString).length, length: 0),
+            selectionRange: NSRange(location: (buffer as NSString).length, length: 0),
             replacementRange: NSRange(location: NSNotFound, length: 0)
         )
     }

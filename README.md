@@ -12,9 +12,9 @@ based on frequency + recency.
 > starter dictionary; a corpus build pipeline (`scripts/corpus/`) builds
 > a real ~30k-headword dictionary from AI4Bharat's Aksharantar dataset
 > ranked by Nepali Wikipedia frequency, with a hand-curated lemma seed
-> (eval: 68/68). A rule-based transliterator covers novel words not in
-> the dictionary by rendering Roman → Devanagari live as you type
-> (`Dilip` → दिलिप). A per-user `.pkg` installer (`scripts/make_pkg.sh`)
+> (eval: 68/68). A rule-based transliterator adds a Roman → Devanagari
+> fallback candidate so novel words not in the dictionary still produce
+> a usable suggestion (`dilip` → दिलिप). A per-user `.pkg` installer (`scripts/make_pkg.sh`)
 > can be shared with non-developers — currently unsigned (Tier 1), so
 > recipients right-click → Open the first time.
 
@@ -168,21 +168,20 @@ gap-fill for words still missing from the dict).
 | Arrow Up/Down | Move candidate selection |
 | Cmd / Ctrl chord | Pass through unchanged |
 
-## Live transliteration (rule-based fallback)
+## Rule-based candidate fallback
 
-The marked text shown in your editor while composing is the **live
-Devanagari transliteration** of your Roman buffer, not the raw
-Roman characters. Type `D` and you see द; type `Di` and it becomes
-दि; type `Dilip` and it becomes दिलिप. This works even for words
-not in the dictionary — proper names, neologisms, anything novel.
+While you type, the marked text in your editor stays as the raw
+Roman characters (so you always see what you typed). The
+**candidate window** is where the Devanagari renderings appear:
+dictionary matches first, then a rule-transliterated fallback last
+when there's room.
 
-The candidate window still shows dictionary matches first; the
-rule-transliterated result is appended **last** so dictionary
-suggestions stay at predictable positions for muscle-memory typing.
-When no dictionary entry exists, the rule candidate is the only one
-shown — pick it with Space and the IME records the selection in the
-learner, so the next time you type the same word it appears as a
-learned candidate instead.
+The fallback covers novel words not in the dictionary — type
+`dilip` and दिलिप appears as a candidate even though it's not in
+the bundled corpus. Pick it with Space (or any of the candidate
+shortcuts) and the IME records the selection in the learner, so
+the next time you type the same word it appears as a learned
+candidate ahead of the rule one.
 
 ### Romanization scheme cheat sheet
 
