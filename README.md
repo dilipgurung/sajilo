@@ -129,6 +129,27 @@ Expected end-state: `BundleResources/system_dict.tsv` ≈ 30k rows
 across ~29k unique Devanagari headwords; eval reports **68/68 pairs
 found (100.0%)**.
 
+To produce a redistributable `.pkg` with the real dictionary, the
+canonical sequence is:
+
+```bash
+./scripts/corpus/run_all.sh   # build the 30k dictionary into BundleResources/
+./scripts/make_pkg.sh         # → dist/NepaliIME.pkg
+```
+
+`bundle.sh` (which `make_pkg.sh` invokes) refuses to ship a bundle
+where `system_dict.tsv` looks like the 150-word starter (< 5,000
+data rows). To deliberately build a starter-only bundle for testing,
+set `NEPALI_IME_ALLOW_STARTER=1`.
+
+The packaged `.app` includes both `system_dict.tsv` (corpus-built,
+seed already merged in with boosted frequencies) and a copy of
+`scripts/corpus/lemma_seed.tsv` (the hand-curated seed source) under
+`Contents/Resources/`. The seed file is a transparency artifact —
+not loaded at runtime, since its content is already in the merged
+dictionary, but useful for users who want to see what was hand-
+curated or to copy it into their own setup.
+
 ### Smoke test before the full run
 
 ```bash
@@ -439,7 +460,7 @@ Sources/NepaliIMECore/     # Library: all logic, unit-testable
 Tests/NepaliIMECoreTests/  # XCTest suite
 BundleResources/           # Info.plist, system_dict.tsv, icons, lproj strings
 ├── Info.plist             #   InputMethodKit keys + ComponentInputModeDict
-├── system_dict.tsv        #   bundled starter dictionary
+├── system_dict.tsv        #   bundled dictionary (~30k headwords after corpus run)
 ├── MenuIcon.icns          #   colored Nepal-flag pennant (menu bar + switcher)
 ├── PaletteIconTemplate.icns  # "ने" character (template, alternate slot)
 ├── en.lproj/              #   localized display names
