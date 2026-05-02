@@ -8,15 +8,18 @@ Space. The IME learns from your selections and reorders future candidates
 based on frequency + recency.
 
 > **Status:** v0.1. Engine, persistence, and IMK plumbing are
-> implemented and unit-tested (64/64 green). Ships with a ~150-word
+> implemented and unit-tested (93/93 green). Ships with a ~150-word
 > starter dictionary; a corpus build pipeline (`scripts/corpus/`) builds
 > a real ~30k-headword dictionary from AI4Bharat's Aksharantar dataset
 > ranked by Nepali Wikipedia frequency, with a hand-curated lemma seed
 > (eval: 68/68). A rule-based transliterator adds a Roman → Devanagari
 > fallback candidate so novel words not in the dictionary still produce
-> a usable suggestion (`dilip` → दिलिप). A per-user `.pkg` installer (`scripts/make_pkg.sh`)
-> can be shared with non-developers — currently unsigned (Tier 1), so
-> recipients right-click → Open the first time.
+> a usable suggestion (`dilip` → दिलिप). The learner now stores both the
+> literal Roman the user typed and a normalized form, so retyping the
+> simpler spelling later still finds the previously-committed word.
+> A per-user `.pkg` installer (`scripts/make_pkg.sh`) can be shared
+> with non-developers — currently unsigned (Tier 1), so recipients
+> right-click → Open the first time.
 
 ---
 
@@ -239,6 +242,24 @@ If you commit one of the alternatives, the learner remembers your
 choice, so next time the same Roman input is typed your preferred
 reading is at the top of the list.
 
+### Forgiving learned-entry lookup
+
+Once you commit a rule-built or candidate-list word, the learner
+stores the literal Roman you typed (`gai*DaakoT`) AND a normalized
+form (`gaidakot`). Future lookups query by the normalized form, so
+you can type the easier spelling and still get your earlier
+selection back. The normalization rule:
+
+- Strip the `\` and `*` sigils.
+- Lowercase capital letters (so retroflex `T/D/N/S/Th/Dh` collapse
+  to their dental Roman keys).
+- Collapse repeated identical vowels (`aa→a`, `ee→e`, etc.).
+
+Example: type `gai*DaakoT` once, commit गैंडाकोट. Next time, just
+type `gaidakot` — गैंडाकोट shows up at the top of the candidate
+list. The literal `input` column in `learner.sqlite` still records
+exactly what you originally typed, so nothing is lost.
+
 ### Adding a word the IME doesn't know
 
 Three paths depending on how permanent the addition should be:
@@ -252,10 +273,12 @@ Three paths depending on how permanent the addition should be:
 **Path 1 — let the learner pick it up.** If the rule transliterator
 gets the spelling right (e.g. `dilip` → दिलिप), just commit it.
 The learner stores the `(input, output)` pair in
-`~/Library/Application Support/NepaliIME/learner.sqlite`; the next
-time you type the same Roman input, the previously-selected
-Devanagari appears at the top of the candidate list as a learned
-suggestion. No editing needed.
+`~/Library/Application Support/NepaliIME/learner.sqlite`. Next time
+you type the same Roman input — or any spelling that **normalizes to
+the same key** (sigils stripped, lowercased, repeated vowels collapsed)
+— the previously-selected Devanagari appears at the top of the
+candidate list. So commit `gai*DaakoT → गैंडाकोट` once and later just
+typing `gaidakot` finds it. No editing needed.
 
 **Path 2 — edit the user dictionary.** This is the right path when
 the rule output is *wrong* (e.g. `nepal` → नेपल should be नेपाल) or
@@ -486,7 +509,7 @@ its icon cache is otherwise sticky.
 swift test
 ```
 
-64 tests across `Trie`, `Ranker`, `SuggestionEngine`,
+93 tests across `Trie`, `Ranker`, `SuggestionEngine`,
 `SuggestionEngineRuleFallback`, `RuleTransliterator`, `DictionaryManager`,
 `UserLearner`, `KeyEventRouter`, `PanelPositioner`. The IMK controller and
 the NSPanel are not unit-tested — IME UX is verified manually in real apps.

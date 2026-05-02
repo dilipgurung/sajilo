@@ -55,6 +55,37 @@ final class SuggestionEngineTests: XCTestCase {
         XCTAssertEqual(recorded, 1)
     }
 
+    // MARK: - Learned-only outputs become first-class candidates
+
+    func testLearnedOnlyOutputSurfacesWhenDictHasNoMatch() async {
+        // Dict knows nothing about "gaidakot", but the learner has a
+        // boost for it from a prior commit. Engine should promote that
+        // learned output into the candidate list.
+        let learner = FakeLearner()
+        let engine = makeEngine(dictPairs: [], learner: learner)
+        let now = Date()
+        await learner.injectBoost(input: "gaidakot", output: "गैंडाकोट", freq: 3, when: now)
+        let results = await engine.candidates(for: "gaidakot")
+        XCTAssertEqual(results.first?.output, "गैंडाकोट")
+        XCTAssertEqual(results.first?.source, .learned)
+    }
+
+    func testLearnedOutputMergesWithDictMatches() async {
+        // Dict has one match; learner adds a different output for the
+        // same input. Both should appear; the learned one ranks first
+        // because the learner boost outweighs the dict's small base freq.
+        let learner = FakeLearner()
+        let engine = makeEngine(
+            dictPairs: [("nam", "नाम", 10)],
+            learner: learner
+        )
+        await learner.injectBoost(input: "nam", output: "नमुना", freq: 100, when: Date())
+        let results = await engine.candidates(for: "nam")
+        let outputs = results.map(\.output)
+        XCTAssertTrue(outputs.contains("नाम"),  "expected dict output नाम in \(outputs)")
+        XCTAssertTrue(outputs.contains("नमुना"), "expected learned output नमुना in \(outputs)")
+    }
+
     private func makeEngine(
         dictPairs: [(String, String, Int)],
         learner: LearnerSource = NoopLearner()

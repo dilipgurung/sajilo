@@ -21,10 +21,35 @@ public actor SuggestionEngine {
     public func candidates(for romanInput: String, limit: Int = 9) async -> [Candidate] {
         guard !romanInput.isEmpty else { return [] }
         let raw = dictionary.candidates(for: romanInput)
+
+        // Skip the learner DB hit when the dict has already filled the
+        // candidate window — the learner can only contribute by ranking
+        // or by introducing new outputs, and there's no room for either.
+        let needsLearner = raw.count < limit
+        let boosts: [String: BoostScore] = needsLearner
+            ? await learner.boostScores(for: romanInput)
+            : [:]
+
+        // Promote learned outputs that aren't already in the dict to
+        // first-class candidates so an entry like
+        // `gaidakot → गैंडाकोट` (committed earlier) surfaces even when
+        // no dictionary or rule candidate matches.
+        var merged = raw
+        if !boosts.isEmpty {
+            let existing = Set(raw.map(\.output))
+            for (output, _) in boosts where !existing.contains(output) {
+                merged.append(Candidate(
+                    output: output,
+                    romanInput: romanInput,
+                    baseFrequency: 0,
+                    source: .learned
+                ))
+            }
+        }
+
         var result: [Candidate] = []
-        if !raw.isEmpty {
-            let boosts = await learner.boostScores(for: romanInput)
-            let ranked = ranker.rank(candidates: raw, boosts: boosts, now: Date())
+        if !merged.isEmpty {
+            let ranked = ranker.rank(candidates: merged, boosts: boosts, now: Date())
             result = Array(ranked.prefix(limit))
         }
 
