@@ -13,17 +13,27 @@ CONTENTS="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS/MacOS"
 RESOURCES_DIR="$CONTENTS/Resources"
 
-# Universal binary: the .pkg advertises arm64 + x86_64 hosts.
-BUILD_ARGS=(-c release --product "$APP_NAME" --arch arm64 --arch x86_64)
+# Universal binary: the .pkg advertises arm64 + x86_64 hosts. Build each
+# arch separately and lipo them together — `swift build --arch a --arch b`
+# goes through the Xcode build system, which rejects Swift 6 language mode
+# on some Xcode 16 toolchains.
+MIN_MACOS="14.0"
+ARCH_BINS=()
+for arch in arm64 x86_64; do
+    echo "==> Building $APP_NAME (release, $arch)..."
+    BUILD_ARGS=(-c release --product "$APP_NAME" --triple "$arch-apple-macosx$MIN_MACOS"
+                --scratch-path "$ROOT_DIR/.build/$arch")
+    swift build "${BUILD_ARGS[@]}"
+    bin="$(swift build "${BUILD_ARGS[@]}" --show-bin-path)/$APP_NAME"
+    if [[ ! -x "$bin" ]]; then
+        echo "ERROR: built binary not found at $bin" >&2
+        exit 1
+    fi
+    ARCH_BINS+=("$bin")
+done
 
-echo "==> Building $APP_NAME (release, universal)..."
-swift build "${BUILD_ARGS[@]}"
-
-BUILT_BIN="$(swift build "${BUILD_ARGS[@]}" --show-bin-path)/$APP_NAME"
-if [[ ! -x "$BUILT_BIN" ]]; then
-    echo "ERROR: built binary not found at $BUILT_BIN" >&2
-    exit 1
-fi
+BUILT_BIN="$ROOT_DIR/.build/$APP_NAME-universal"
+lipo -create "${ARCH_BINS[@]}" -output "$BUILT_BIN"
 
 echo "==> Assembling bundle at $APP_DIR..."
 rm -rf "$APP_DIR"
