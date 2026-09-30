@@ -11,7 +11,8 @@ future candidates based on what you pick.
 
 ## Install
 
-If you've been handed a `NepaliIME.pkg`:
+Download the latest `NepaliIME-<version>.pkg` from
+[Releases](https://github.com/dilipgurung/NepaliIME/releases/latest), then:
 
 1. **Right-click** the `.pkg` → **Open** (don't double-click — the installer
    is unsigned, so Gatekeeper blocks plain double-clicks). Click **Open** on
