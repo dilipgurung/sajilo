@@ -6,6 +6,7 @@ public enum KeyAction: Sendable, Equatable {
     case backspace
     case commitSelected            // commit, let the originating key char through (Space)
     case commitSelectedAndEat      // commit, swallow the originating key char (Return)
+    case commitRaw                 // commit the Roman buffer as typed (Shift+Return)
     case cancel
     case selectIndex(Int)
     case moveSelection(Int)
@@ -38,7 +39,10 @@ public enum KeyEventRouter {
             // immediately after the committed word, no line break.
             // Falls back to raw-buffer insert internally when no
             // candidates exist (commitSelectedAndReset's empty case).
-            return hasComposition ? .commitSelectedAndEat : .passThrough
+            // Shift+Return is the escape hatch for Latin text: commit
+            // the Roman buffer exactly as typed.
+            guard hasComposition else { return .passThrough }
+            return mods.contains(.shift) ? .commitRaw : .commitSelectedAndEat
         case "\u{1B}":
             return hasComposition ? .cancel : .passThrough
         case "\t":

@@ -19,11 +19,9 @@ public final class IMEServices {
                 return
             }
             let userDict = Paths.userDictionary
-            let dictMgr = try DictionaryManager(
-                systemDictURL: systemDict,
-                userDictURL: userDict,
-                cacheURL: Paths.systemDictCache
-            )
+            let dictMgr = try DictionaryManager(systemDictURL: systemDict, userDictURL: userDict)
+            // Earlier versions kept a serialized trie cache here; drop it.
+            try? FileManager.default.removeItem(at: Paths.legacyCacheDirectory)
             let learner = try UserLearner(databaseURL: Paths.userLearnerDatabase)
             let engine = SuggestionEngine(
                 dictionary: dictMgr,

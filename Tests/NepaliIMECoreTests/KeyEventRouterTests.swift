@@ -23,6 +23,17 @@ final class KeyEventRouterTests: XCTestCase {
         XCTAssertEqual(classify("\r", composing: true), .commitSelectedAndEat)
     }
 
+    func testShiftReturnCommitsRawWhenComposing() {
+        XCTAssertEqual(
+            KeyEventRouter.classify(characters: "\r", modifierFlags: .shift, hasComposition: true),
+            .commitRaw
+        )
+        XCTAssertEqual(
+            KeyEventRouter.classify(characters: "\r", modifierFlags: .shift, hasComposition: false),
+            .passThrough
+        )
+    }
+
     func testEscapeCancelsWhenComposing() {
         XCTAssertEqual(classify("\u{1B}", composing: true), .cancel)
     }

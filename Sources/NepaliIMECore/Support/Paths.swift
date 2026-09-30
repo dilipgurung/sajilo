@@ -3,21 +3,17 @@ import Foundation
 public enum Paths {
     public static let appName = "NepaliIME"
 
-    public static var applicationSupportDirectory: URL {
+    // Created once on first access rather than on every property read.
+    public static let applicationSupportDirectory: URL = {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let dir = base.appendingPathComponent(appName, isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
-    }
+    }()
 
-    public static var cacheDirectory: URL {
-        let dir = applicationSupportDirectory.appendingPathComponent("cache", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir
-    }
-
-    public static var systemDictCache: URL {
-        cacheDirectory.appendingPathComponent("system_dict.bin", isDirectory: false)
+    /// Trie cache directory used by versions ≤ 0.1.0; removed at startup.
+    public static var legacyCacheDirectory: URL {
+        applicationSupportDirectory.appendingPathComponent("cache", isDirectory: true)
     }
 
     public static var userDictionary: URL {

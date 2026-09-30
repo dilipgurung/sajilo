@@ -4,27 +4,38 @@ import os
 public final class DictionaryManager: DictionarySource, @unchecked Sendable {
     private let systemDictURL: URL
     private let userDictURL: URL?
-    private let cacheURL: URL?
     private let lock = NSLock()
     private var systemTrie: Trie
     private var userTrie: Trie
+    private let completionLimit: Int
 
-    private static let userBaseFrequency = 1000
+    /// Frequency given to user-dictionary rows that omit the column —
+    /// above every system entry (seed lemmas ship at 100,000).
+    public static let userDefaultFrequency = 200_000
 
-    public init(systemDictURL: URL, userDictURL: URL?, cacheURL: URL? = Paths.systemDictCache) throws {
+    /// - Parameter completionLimit: max prefix completions returned per
+    ///   dictionary on each lookup; exact matches are always returned.
+    public init(
+        systemDictURL: URL,
+        userDictURL: URL?,
+        completionLimit: Int = 32
+    ) throws {
         self.systemDictURL = systemDictURL
         self.userDictURL = userDictURL
-        self.cacheURL = cacheURL
+        self.completionLimit = completionLimit
         self.systemTrie = Trie()
         self.userTrie = Trie()
         try loadSystemTrie()
         try reloadUserDictionaryLocked()
     }
 
+    /// Keys are stored lowercase, so lookup ignores case.
     public func candidates(for prefix: String) -> [Candidate] {
+        let prefix = prefix.lowercased()
         lock.lock()
         defer { lock.unlock() }
-        return systemTrie.lookup(prefix: prefix) + userTrie.lookup(prefix: prefix)
+        return systemTrie.lookup(prefix: prefix, completionLimit: completionLimit)
+            + userTrie.lookup(prefix: prefix, completionLimit: completionLimit)
     }
 
     public func reloadUserDictionary() throws {
@@ -33,39 +44,24 @@ public final class DictionaryManager: DictionarySource, @unchecked Sendable {
         try reloadUserDictionaryLocked()
     }
 
+    // Parsing the TSV (~130 ms for 30k rows in release) is faster than
+    // decoding a serialized trie, so there is no on-disk cache.
     private func loadSystemTrie() throws {
-        let attrs = try FileManager.default.attributesOfItem(atPath: systemDictURL.path)
-        let size = (attrs[.size] as? UInt64) ?? 0
-        let mtime = (attrs[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
-
-        if let cacheURL, let cached = readCache(at: cacheURL),
-           cached.sourceSize == size, abs(cached.sourceMTime - mtime) < 0.001 {
-            Log.dict.info("Loaded system dictionary from cache (\(size) bytes)")
-            self.systemTrie = cached.trie
-            return
-        }
-
-        Log.dict.info("Building system dictionary from TSV (\(size) bytes)")
         var trie = Trie()
         var loaded = 0
         var skipped = 0
         try parseTSV(at: systemDictURL) { input, output, freq in
-            let baseFreq = freq ?? 1
             let cand = Candidate(
                 output: output.precomposedStringWithCanonicalMapping,
                 romanInput: input,
-                baseFrequency: baseFreq,
+                baseFrequency: freq ?? 1,
                 source: .system
             )
-            trie.insert(key: input, value: cand)
+            trie.insert(key: input.lowercased(), value: cand)
             loaded += 1
         } onSkip: { _ in skipped += 1 }
         Log.dict.info("System dict: loaded \(loaded), skipped \(skipped)")
         self.systemTrie = trie
-
-        if let cacheURL {
-            try? writeCache(at: cacheURL, payload: CachedDictionary(sourceSize: size, sourceMTime: mtime, trie: trie))
-        }
     }
 
     private func reloadUserDictionaryLocked() throws {
@@ -82,10 +78,10 @@ public final class DictionaryManager: DictionarySource, @unchecked Sendable {
             let cand = Candidate(
                 output: output.precomposedStringWithCanonicalMapping,
                 romanInput: input,
-                baseFrequency: freq ?? Self.userBaseFrequency,
+                baseFrequency: freq ?? Self.userDefaultFrequency,
                 source: .user
             )
-            trie.insert(key: input, value: cand)
+            trie.insert(key: input.lowercased(), value: cand)
         } onSkip: { _ in }
         self.userTrie = trie
     }
@@ -118,24 +114,5 @@ public final class DictionaryManager: DictionarySource, @unchecked Sendable {
             }
             onRow(input, output, freq)
         }
-    }
-
-    private struct CachedDictionary: Codable {
-        let sourceSize: UInt64
-        let sourceMTime: TimeInterval
-        let trie: Trie
-    }
-
-    private func readCache(at url: URL) -> CachedDictionary? {
-        guard FileManager.default.fileExists(atPath: url.path),
-              let data = try? Data(contentsOf: url) else { return nil }
-        return try? PropertyListDecoder().decode(CachedDictionary.self, from: data)
-    }
-
-    private func writeCache(at url: URL, payload: CachedDictionary) throws {
-        let encoder = PropertyListEncoder()
-        encoder.outputFormat = .binary
-        let data = try encoder.encode(payload)
-        try data.write(to: url, options: .atomic)
     }
 }

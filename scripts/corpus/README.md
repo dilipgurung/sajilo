@@ -1,9 +1,8 @@
 # Corpus Build Pipeline
 
 Generates `BundleResources/system_dict.tsv` (the IME's bundled dictionary)
-from real-world data sources. Replaces the 150-word hand-curated starter
-with a ~30k-headword / ~30k-row dictionary that passes 68/68 of the
-hand-curated eval set.
+from real-world data sources: a ~30k-headword / ~30k-row dictionary that
+passes 68/68 of the hand-curated eval set.
 
 ## Sources
 
@@ -11,7 +10,7 @@ hand-curated eval set.
 |---|---|---|
 | [AI4Bharat Aksharantar](https://huggingface.co/datasets/ai4bharat/Aksharantar) Nepali split (`nep.zip` → `nep_train.json` + `nep_valid.json` + `nep_test.json`) | Romanization variants per Devanagari word (~2.4M Nepali pairs of inflected/conjugated forms) | CC0 (mined) + CC-BY (manual) |
 | [Nepali Wikipedia dump](https://dumps.wikimedia.org/newiki/) (`newiki-latest-pages-articles.xml.bz2`) | Frequency ranking — picks which 30k Devanagari headwords actually ship | CC-BY-SA |
-| `lemma_seed.tsv` (in this directory) | Hand-curated bare-lemma backfill (~250 entries: pronouns, copula, numbers, common verbs, days/months, places, food, greetings) | This repo (MIT) |
+| `lemma_seed.tsv` (in this directory) | Hand-curated bare-lemma backfill (~390 entries: pronouns, copula, numbers, common verbs, days/months, places, food, greetings) | This repo (MIT) |
 
 ### Why these three sources together
 
@@ -43,12 +42,9 @@ The first run creates a venv at `.venv-corpus/` and pip-installs
 `datasets`, `huggingface_hub`, `tqdm` (~200MB total — vs several GB if
 we used IndicXlit). Subsequent runs reuse it.
 
-**Back up the existing dictionary first** if you care about the 150-word
-starter — `build_dict.py` overwrites `BundleResources/system_dict.tsv`:
-
-```bash
-cp BundleResources/system_dict.tsv BundleResources/system_dict.tsv.starter
-```
+`build_dict.py` overwrites `BundleResources/system_dict.tsv`; the
+generated dictionary is committed, so `git diff` / `git checkout` covers
+any rollback.
 
 After the pipeline finishes, rebuild and install the IME:
 
@@ -98,7 +94,7 @@ scripts/corpus/
 ├── fetch_wiki_freq.py     newiki dump → work/corpus/frequencies.tsv
 ├── fetch_aksharantar.py   HF nep.zip → work/corpus/aksharantar_nep.tsv
 ├── build_dict.py          combine + lemma_seed → BundleResources/system_dict.tsv
-├── lemma_seed.tsv         hand-curated bare-lemma backfill (~250 entries)
+├── lemma_seed.tsv         hand-curated bare-lemma backfill (~390 entries)
 ├── eval_pairs.tsv         hand-curated regression set (~70 pairs)
 ├── eval.py                check eval_pairs against generated dict
 └── run_all.sh             venv setup + orchestrates all 4 steps

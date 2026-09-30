@@ -82,4 +82,13 @@ final class UserLearnerTests: XCTestCase {
         XCTAssertEqual(UserLearner.normalizeForLearner("aim"),        "aim")
         XCTAssertEqual(UserLearner.normalizeForLearner("auto"),       "auto")
     }
+
+    func testBoostReportsWhetherLiteralInputMatched() async throws {
+        let learner = try UserLearner(inMemory: true)
+        await learner.record(input: "maa", output: "मा", source: .system)
+        var boosts = await learner.boostScores(for: "ma")
+        XCTAssertEqual(boosts["मा"]?.matchesInput, false)
+        boosts = await learner.boostScores(for: "Maa")
+        XCTAssertEqual(boosts["मा"]?.matchesInput, true)
+    }
 }

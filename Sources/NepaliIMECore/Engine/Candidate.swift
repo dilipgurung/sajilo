@@ -24,10 +24,15 @@ public struct Candidate: Sendable, Hashable, Codable {
 public struct BoostScore: Sendable, Hashable {
     public let userFrequency: Int
     public let lastUsed: Date
+    /// True when the pick was made for this literal input (ignoring case),
+    /// false when it only matched via the learner's normalized key
+    /// (e.g. a pick for `maa` seen while typing `ma`).
+    public let matchesInput: Bool
 
-    public init(userFrequency: Int, lastUsed: Date) {
+    public init(userFrequency: Int, lastUsed: Date, matchesInput: Bool = true) {
         self.userFrequency = userFrequency
         self.lastUsed = lastUsed
+        self.matchesInput = matchesInput
     }
 }
 

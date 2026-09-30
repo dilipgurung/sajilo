@@ -12,8 +12,11 @@ import Foundation
 /// Tuned for Nepali typing conventions:
 ///   - Inherent schwa is preserved at end of word (दिलिप, not दिलिप्).
 ///   - Consonant-consonant junctions get a halant inserted automatically.
-///   - Case is ignored.
-///   - Default `t/d/n` is dental (use the dictionary for retroflex).
+///   - Lowercase `t/d/n/s` are dental; capital `T/D/N/S/Th/Dh` are
+///     retroflex (ITRANS convention) and also emit the dental reading as
+///     an alternative. Other capitals fall back to their lowercase reading.
+///   - `ri` is vocalic R (ऋ/ृ) only at word start or after a consonant
+///     other than `r`; after a vowel (`hari`) it is र + ि.
 ///
 /// Branching points (where multiple parses are emitted):
 ///   - **Single `a` after a consonant before more input.** Default:
@@ -22,19 +25,14 @@ import Foundation
 ///     the schwa readings (गै, गई, रम).
 ///   - **Trailing `n`/`m` at end of buffer after a vowel matra.**
 ///     Default: emit consonant न/म with inherent schwa. Alternative:
-///     emit anusvara (ं) on the previous syllable. Lets `gain → गैं`
-///     and `nahin → नहीं` (well, the variant) appear alongside गैन/नहिन.
+///     emit anusvara (ं) on the previous syllable (`gain → गैं`).
+///   - **Vocalic R tokens (`ri`, `rri`, `rree`).** Alternative: split
+///     into र + vowel (`pri → प्रि`, `rishi → रिशि`).
 ///
 /// Pure value type, `Sendable`, no I/O.
 public struct RuleTransliterator: Sendable {
 
-    public enum Scheme: Sendable {
-        case nepaliPhonetic
-    }
-
-    public init(scheme: Scheme = .nepaliPhonetic) {
-        _ = scheme
-    }
+    public init() {}
 
     /// Returns up to `maxAlternatives` plausible Devanagari parses,
     /// deduped, longest-match default first. Empty array for empty input.
@@ -126,7 +124,14 @@ public struct RuleTransliterator: Sendable {
                 matched = (.special(glyph), size); break
             }
             if let v = vowelTable[lowerKey] {
-                matched = (.vowel(lowerKey, v), size); break
+                // Vocalic R mid-word after a vowel (`hari`) or after `r`
+                // itself (`harri`) reads as र + vowel — fall through to
+                // the shorter `r` token.
+                let midWordAfterVowel = pos > 0 && lastConsonant == nil
+                let afterR = lastConsonant == "r"
+                if !((midWordAfterVowel || afterR) && lowerKey.hasPrefix("r")) {
+                    matched = (.vowel(lowerKey, v), size); break
+                }
             }
             if let c = consonantTable[key] {
                 matched = (.consonant(key, c), size); break
@@ -209,9 +214,9 @@ public struct RuleTransliterator: Sendable {
                 )
             }
 
-            // Alternative: 'rri' / 'rree' have a meaningful split reading
-            // (r + (halant) + r + i-matra) alongside the vocalic-R default.
-            if (key == "rri" || key == "rree"), m.len > 1 {
+            // Alternative: vocalic-R tokens have a meaningful split reading
+            // (r + (halant) + vowel) alongside the default: `pri → प्रि`.
+            if (key == "ri" || key == "rri" || key == "rree"), m.len > 1 {
                 let firstKey = String(chars[pos]).lowercased()
                 if let firstGlyph = consonantTable[firstKey] {
                     let prefix = (lastConsonant != nil) ? "्" : ""
@@ -409,5 +414,9 @@ public struct RuleTransliterator: Sendable {
         "m": "म", "y": "य", "r": "र",
         "l": "ल", "v": "व", "w": "व",
         "s": "स", "h": "ह",
+
+        // Letters with no native sound of their own — mapped to their
+        // closest Nepali reading so Latin never leaks into the output.
+        "c": "क", "q": "क", "x": "क्स", "z": "ज",
     ]
 }

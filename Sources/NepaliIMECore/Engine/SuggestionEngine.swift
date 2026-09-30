@@ -20,15 +20,13 @@ public actor SuggestionEngine {
 
     public func candidates(for romanInput: String, limit: Int = 9) async -> [Candidate] {
         guard !romanInput.isEmpty else { return [] }
-        let raw = dictionary.candidates(for: romanInput)
+        // Dictionary keys are lowercase; capitals only carry meaning for
+        // the rule layer (retroflex), which gets the input as typed.
+        let raw = dictionary.candidates(for: romanInput.lowercased())
 
-        // Skip the learner DB hit when the dict has already filled the
-        // candidate window — the learner can only contribute by ranking
-        // or by introducing new outputs, and there's no room for either.
-        let needsLearner = raw.count < limit
-        let boosts: [String: BoostScore] = needsLearner
-            ? await learner.boostScores(for: romanInput)
-            : [:]
+        // Always consult the learner: even when the dictionary fills the
+        // window, a previous pick must be able to reorder it.
+        let boosts = await learner.boostScores(for: romanInput)
 
         // Promote learned outputs that aren't already in the dict to
         // first-class candidates so an entry like
@@ -47,24 +45,24 @@ public actor SuggestionEngine {
             }
         }
 
-        var result: [Candidate] = []
-        if !merged.isEmpty {
-            let ranked = ranker.rank(candidates: merged, boosts: boosts, now: Date())
-            result = Array(ranked.prefix(limit))
-        }
+        let ranked = ranker.rankWithTiers(candidates: merged, boosts: boosts, now: Date(), input: romanInput)
+        let existing = Set(ranked.map(\.candidate.output))
+        let ruleExtras = (fallback?.candidates(for: romanInput) ?? [])
+            .filter { !existing.contains($0.output) }
 
-        // Append the rule-based fallback last (and only if it adds something
-        // new — dedupe by output to avoid showing both a dict and a rule
-        // candidate with the same Devanagari).
-        if let fallback, result.count < limit {
-            let extras = fallback.candidates(for: romanInput)
-            let existing = Set(result.map(\.output))
-            for c in extras where !existing.contains(c.output) {
-                result.append(c)
-                if result.count >= limit { break }
-            }
-        }
+        // The rule reading is the only way to get a word the dictionary
+        // doesn't know, so keep a slot for it (two when the input has
+        // capitals, which ask for a retroflex reading) — displacing only
+        // prefix completions, never exact matches.
+        let hasCapitals = romanInput != romanInput.lowercased()
+        let reserve = min(ruleExtras.count, hasCapitals ? 2 : 1)
+        let exactCount = ranked.prefix { $0.exact }.count
+        let keep = max(min(exactCount, limit), limit - reserve)
 
+        var result = ranked.prefix(keep).map(\.candidate)
+        for c in ruleExtras where result.count < limit {
+            result.append(c)
+        }
         return result
     }
 

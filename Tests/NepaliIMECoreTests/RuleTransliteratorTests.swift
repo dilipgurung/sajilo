@@ -299,6 +299,12 @@ final class RuleTransliteratorTests: XCTestCase {
         XCTAssertTrue(parses.contains("ऋ"), "expected ऋ in \(parses)")
     }
 
+    func testDoubledRAfterVowelIsRaCluster() {
+        XCTAssertEqual(first("harri"), "हर्रि")
+        XCTAssertFalse(all("rri").contains("रृ"), "\(all("rri"))")
+        XCTAssertFalse(all("harri").contains("हरृ"), "\(all("harri"))")
+    }
+
     func testRreeIsLongVocalicR() {
         let parses = all("rree")
         XCTAssertTrue(parses.contains("ॠ"), "expected ॠ in \(parses)")
@@ -322,4 +328,32 @@ final class RuleTransliteratorTests: XCTestCase {
                       "expected dental alt दिलिप in \(parses)")
     }
 
+
+    // MARK: - Vocalic R placement and Latin leakage
+
+    func testRiAfterVowelIsRaPlusIMatra() {
+        XCTAssertEqual(first("hari"), "हरि")
+        XCTAssertEqual(first("giri"), "गिरि")
+        XCTAssertEqual(first("pari"), "परि")
+    }
+
+    func testRiAtWordStartAndAfterConsonantStaysVocalic() {
+        XCTAssertEqual(first("rishi"), "ऋशि")
+        XCTAssertEqual(first("kri"), "कृ")
+    }
+
+    func testRiAfterConsonantOffersSplitAlternative() {
+        XCTAssertTrue(all("priya").contains("प्रिय"), "\(all("priya"))")
+    }
+
+    func testUnmappedLatinLettersDoNotLeak() {
+        XCTAssertEqual(first("cat"), "कत")
+        XCTAssertEqual(first("zoo"), "जू")
+        XCTAssertEqual(first("xray"), "क्स्रय")
+        for w in ["cat", "zoo", "xray", "quick", "Cxqz"] {
+            for parse in all(w) {
+                XCTAssertFalse(parse.contains(where: { $0.isASCII && $0.isLetter }), "\(w) → \(parse)")
+            }
+        }
+    }
 }

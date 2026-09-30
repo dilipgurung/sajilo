@@ -22,7 +22,7 @@ final class DictionaryManagerTests: XCTestCase {
             "nam\tनाम\t50",
             "ghar\tघर\t80",
         ])
-        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: nil, cacheURL: nil)
+        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: nil)
         let results = mgr.candidates(for: "nam")
         let outputs = Set(results.map(\.output))
         XCTAssertEqual(outputs, ["नमस्ते", "नाम"])
@@ -36,7 +36,7 @@ final class DictionaryManagerTests: XCTestCase {
             "nam\t\t50",
             "ghar\tघर\tnotanumber",
         ])
-        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: nil, cacheURL: nil)
+        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: nil)
         XCTAssertEqual(mgr.candidates(for: "namaste").count, 1)
         XCTAssertEqual(mgr.candidates(for: "ghar").first?.baseFrequency, 1)
     }
@@ -46,7 +46,7 @@ final class DictionaryManagerTests: XCTestCase {
         let sys = try writeTSV("system.tsv", lines: [
             "namaste\t\(decomposed)\t100",
         ])
-        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: nil, cacheURL: nil)
+        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: nil)
         let result = mgr.candidates(for: "namaste").first
         XCTAssertEqual(result?.output, "नमस्ते".precomposedStringWithCanonicalMapping)
     }
@@ -58,38 +58,50 @@ final class DictionaryManagerTests: XCTestCase {
         let user = try writeTSV("user.tsv", lines: [
             "kk\tकाठमाडौँ",
         ])
-        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: user, cacheURL: nil)
+        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: user)
         let results = mgr.candidates(for: "kk")
         XCTAssertEqual(results.first?.output, "काठमाडौँ")
         XCTAssertEqual(results.first?.source, .user)
     }
 
+    func testUserEntryWithoutFrequencyOutranksAnySystemEntry() throws {
+        let sys = try writeTSV("system.tsv", lines: ["nepal\tनेपल\t100000"])
+        let user = try writeTSV("user.tsv", lines: ["nepal\tनेपाल"])
+        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: user)
+        let userCand = mgr.candidates(for: "nepal").first { $0.source == .user }
+        XCTAssertEqual(userCand?.baseFrequency, DictionaryManager.userDefaultFrequency)
+        XCTAssertGreaterThan(DictionaryManager.userDefaultFrequency, 100_000)
+    }
+
+    func testPrefixLookupCapsCompletionsButKeepsExactMatches() throws {
+        var lines = ["k\tक\t1"]
+        lines += (0..<100).map { "k\($0)\tक\($0)\t\($0)" }
+        let sys = try writeTSV("system.tsv", lines: lines)
+        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: nil, completionLimit: 5)
+        let outputs = mgr.candidates(for: "k").map(\.output)
+        XCTAssertTrue(outputs.contains("क"), "exact match always included")
+        XCTAssertEqual(outputs.count, 6)
+        XCTAssertTrue(outputs.contains("क99"), "highest-frequency completion kept")
+        XCTAssertFalse(outputs.contains("क0"))
+    }
+
+    func testCapitalizedKeysAreFoundByLowercaseInput() throws {
+        let sys = try writeTSV("system.tsv", lines: ["namaste\tनमस्ते\t100"])
+        let user = try writeTSV("user.tsv", lines: ["Kathmandu\tकाठमाडौं"])
+        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: user)
+        XCTAssertEqual(mgr.candidates(for: "kathmandu").first?.output, "काठमाडौं")
+        XCTAssertEqual(mgr.candidates(for: "Kathmandu").first?.output, "काठमाडौं")
+    }
+
     func testReloadUserDictionaryPicksUpEdits() throws {
         let sys = try writeTSV("system.tsv", lines: ["namaste\tनमस्ते\t100"])
         let user = try writeTSV("user.tsv", lines: ["kk\tकाठमाडौँ"])
-        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: user, cacheURL: nil)
+        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: user)
         XCTAssertEqual(mgr.candidates(for: "kk").count, 1)
 
         try "kk\tकाठमाडौँ\nnp\tनेपाल\n".write(to: user, atomically: true, encoding: .utf8)
         try mgr.reloadUserDictionary()
         XCTAssertEqual(mgr.candidates(for: "np").first?.output, "नेपाल")
-    }
-
-    func testWritesAndReadsBinaryCache() throws {
-        let sys = try writeTSV("system.tsv", lines: ["namaste\tनमस्ते\t100"])
-        let cache = tmpDir.appendingPathComponent("cache.bin")
-
-        _ = try DictionaryManager(systemDictURL: sys, userDictURL: nil, cacheURL: cache)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: cache.path))
-
-        try FileManager.default.removeItem(at: sys)
-        try "differentcontent\txxx\t1".write(to: sys, atomically: true, encoding: .utf8)
-        let originalSize = try (FileManager.default.attributesOfItem(atPath: sys.path)[.size] as? UInt64) ?? 0
-        XCTAssertGreaterThan(originalSize, 0)
-
-        try "namaste\tनमस्ते\t100".write(to: sys, atomically: true, encoding: .utf8)
-        let mgr2 = try DictionaryManager(systemDictURL: sys, userDictURL: nil, cacheURL: cache)
-        XCTAssertEqual(mgr2.candidates(for: "namaste").first?.output, "नमस्ते")
     }
 
     private func writeTSV(_ name: String, lines: [String]) throws -> URL {

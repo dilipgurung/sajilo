@@ -26,6 +26,9 @@ fi
 echo "==> Copying $APP_NAME to $DEST_DIR/"
 cp -R "$SRC_APP" "$DEST_DIR/"
 
+echo "==> Stopping any running $APP_NAME instance (so the new binary is used)"
+pkill -f "Input Methods/$APP_NAME.app" 2>/dev/null || true
+
 echo "==> Re-registering input sources..."
 killall "TextInputMenuAgent" 2>/dev/null || true
 killall "ControlCenter" 2>/dev/null || true

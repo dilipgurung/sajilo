@@ -39,8 +39,9 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     }
 
     public override func cancelComposition() {
+        let box = ClientBox(client: client())
         MainActor.assumeIsolated {
-            self.clearMarkedText(client: nil)
+            self.clearMarkedText(client: box.client)
             self._state = .idle
             self._panel?.hide()
         }
@@ -198,6 +199,9 @@ public final class InputController: IMKInputController, @unchecked Sendable {
             return false
         case .commitSelectedAndEat:
             commitSelectedAndReset(client: client)
+            return true
+        case .commitRaw:
+            commitRawAndReset(client: client)
             return true
         case .cancel:
             clearMarkedText(client: client)
@@ -387,7 +391,13 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     @MainActor
     private func buildMenu() -> NSMenu {
         let menu = NSMenu(title: "Nepali IME")
-        let about = NSMenuItem(title: "About Nepali IME", action: nil, keyEquivalent: "")
+        // Informational header (no action, so AppKit shows it disabled).
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        let about = NSMenuItem(
+            title: version.map { "Nepali IME \($0)" } ?? "Nepali IME",
+            action: nil,
+            keyEquivalent: ""
+        )
         let openUserDict = NSMenuItem(
             title: "Open User Dictionary…",
             action: #selector(openUserDictionary(_:)),

@@ -1,15 +1,20 @@
 import Foundation
 
-public struct Trie: Sendable, Codable {
+public struct Trie: Sendable {
     private var root = Node()
 
     public init() {}
 
     public mutating func insert(key: String, value: Candidate) {
         guard !key.isEmpty else { return }
+        // Nodes are reference types; copy before mutating a shared trie
+        // so `Trie` keeps value semantics.
+        if !isKnownUniquelyReferenced(&root) { root = root.deepCopy() }
         root.insert(chars: Array(key), index: 0, value: value)
     }
 
+    /// All values stored at `prefix` itself, plus every value in its
+    /// subtree (prefix completions).
     public func lookup(prefix: String) -> [Candidate] {
         guard !prefix.isEmpty else { return [] }
         guard let node = root.find(chars: Array(prefix), index: 0) else { return [] }
@@ -18,11 +23,41 @@ public struct Trie: Sendable, Codable {
         return collected
     }
 
-    private final class Node: Codable, @unchecked Sendable {
+    /// All values stored at `prefix` itself, plus at most
+    /// `completionLimit` completions from its subtree, highest
+    /// `baseFrequency` first.
+    public func lookup(prefix: String, completionLimit: Int) -> [Candidate] {
+        guard !prefix.isEmpty else { return [] }
+        guard let node = root.find(chars: Array(prefix), index: 0) else { return [] }
+        var completions: [Candidate] = []
+        for child in node.children.values {
+            child.collect(into: &completions)
+        }
+        // Dictionary iteration order varies per process; tie-break on
+        // output so the cut is deterministic.
+        completions.sort {
+            $0.baseFrequency != $1.baseFrequency
+                ? $0.baseFrequency > $1.baseFrequency
+                : $0.output < $1.output
+        }
+        if completions.count > completionLimit {
+            completions.removeSubrange(completionLimit...)
+        }
+        return node.values + completions
+    }
+
+    private final class Node: @unchecked Sendable {
         var children: [Character: Node] = [:]
         var values: [Candidate] = []
 
         init() {}
+
+        func deepCopy() -> Node {
+            let copy = Node()
+            copy.values = values
+            copy.children = children.mapValues { $0.deepCopy() }
+            return copy
+        }
 
         func insert(chars: [Character], index: Int, value: Candidate) {
             if index == chars.count {
@@ -44,28 +79,6 @@ public struct Trie: Sendable, Codable {
             out.append(contentsOf: values)
             for child in children.values {
                 child.collect(into: &out)
-            }
-        }
-
-        enum CodingKeys: String, CodingKey { case c, v }
-
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.values = try container.decodeIfPresent([Candidate].self, forKey: .v) ?? []
-            let raw = try container.decodeIfPresent([String: Node].self, forKey: .c) ?? [:]
-            self.children = Dictionary(uniqueKeysWithValues: raw.compactMap { key, val in
-                key.first.map { ($0, val) }
-            })
-        }
-
-        func encode(to encoder: Encoder) throws {
-            var container = encoder.container(keyedBy: CodingKeys.self)
-            if !values.isEmpty {
-                try container.encode(values, forKey: .v)
-            }
-            if !children.isEmpty {
-                let raw = Dictionary(uniqueKeysWithValues: children.map { (String($0.key), $0.value) })
-                try container.encode(raw, forKey: .c)
             }
         }
     }
