@@ -58,17 +58,27 @@ less obvious ones:
 |---|---|---|---|---|---|---|---|---|
 | च | छ | श | फ | व | क्ष | ज्ञ | श्र | क्स |
 
-Add `h` for the aspirated form: `kh` → ख, `gh` → घ, `jh` → झ, `th` → थ,
-`dh` → ध, `bh` → भ.
+Add `h` for the aspirated form: `kh` → ख, `gh` → घ, `jh` → झ, `bh` → भ
+(`th` and `dh` are in the table below).
 
-**Capitals give the retroflex letters.** Lowercase `t d n s` are dental.
+**Capitals give the retroflex letters (ट-row). Lowercase gives the dental
+ones (त-row).** Each pair differs only by Shift:
 
-| `T` | `Th` | `D` | `Dh` | `N` | `S` / `Sh` |
-|---|---|---|---|---|---|
-| ट | ठ | ड | ढ | ण | ष |
+| Lowercase | Gives | Capital | Gives |
+|---|---|---|---|
+| `t` | त | `T` | ट |
+| `th` | थ | `Th` | ठ |
+| `d` | द | `D` | ड |
+| `dh` | ध | `Dh` | ढ |
+| `n` | न | `N` | ण |
+| `s` | स | `S` | ष |
+| `sh` | श | `Sh` | ष |
 
-`Thulo` → ठुलो, `gaNesh` → गणेश and `riShi` → ऋषि. The lowercase reading is still offered
-as an alternative.
+For example, `daal` → दाल (lentils) but `Daal` → डाल (branch). Likewise
+`Thulo` → ठुलो, `gaNesh` → गणेश and `riShi` → ऋषि. A capital also offers
+the lowercase reading as an alternative, so a word you capitalize by
+accident still shows up. The other capitals (`K`, `M`, `P`, …) are the same
+as lowercase.
 
 Special keys, typed as part of the word:
 
