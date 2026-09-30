@@ -36,6 +36,50 @@ If you've been handed a `NepaliIME.pkg`:
 | `.` after Devanagari | Becomes `।` |
 | Digits | Become `०`–`९` |
 
+## Typing guide
+
+Common words come from the dictionary, so a rough spelling usually works. The
+rules below are for names and new words. If the first suggestion is wrong,
+pick another one: the IME remembers it next time.
+
+Vowels (after a consonant they become the matching vowel sign):
+
+| `a` | `aa` | `i` | `ee` | `u` | `oo` | `e` | `ai` | `o` | `au` |
+|---|---|---|---|---|---|---|---|---|---|
+| अ | आ | इ | ई | उ | ऊ | ए | ऐ | ओ | औ |
+
+A single `a` at the end of a word is the inherent vowel. Type `aa` for ा:
+`chhoraa` → छोरा, `Tikaa` → टिका.
+
+Consonants mostly follow the English sound (`k` → क, `b` → ब, `m` → म). The
+less obvious ones:
+
+| `ch` | `chh` | `sh` | `ph` / `f` | `v` / `w` | `ksh` | `gy` | `shr` | `x` |
+|---|---|---|---|---|---|---|---|---|
+| च | छ | श | फ | व | क्ष | ज्ञ | श्र | क्स |
+
+Add `h` for the aspirated form: `kh` → ख, `gh` → घ, `jh` → झ, `th` → थ,
+`dh` → ध, `bh` → भ.
+
+**Capitals give the retroflex letters.** Lowercase `t d n s` are dental.
+
+| `T` | `Th` | `D` | `Dh` | `N` | `S` |
+|---|---|---|---|---|---|
+| ट | ठ | ड | ढ | ण | ष |
+
+`Thulo` → ठुलो and `gaNesh` → गणेश. The lowercase reading is still offered
+as an alternative.
+
+Special keys, typed as part of the word:
+
+| Type | Adds | Example |
+|---|---|---|
+| `\` | ् (halant) | `bas\` → बस् |
+| `*` | ं (anusvara) | `man*` → मनं |
+| `**` | ँ (chandrabindu) | `kahaa**` → कहाँ |
+
+After a word is already typed, `\` and `*` still add ् and ं to it.
+
 ## Adding your own words
 
 Choose **Open User Dictionary…** from the IME's input-source menu and add one
