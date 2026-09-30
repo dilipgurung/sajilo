@@ -10,7 +10,7 @@ passes 68/68 of the hand-curated eval set.
 |---|---|---|
 | [AI4Bharat Aksharantar](https://huggingface.co/datasets/ai4bharat/Aksharantar) Nepali split (`nep.zip` → `nep_train.json` + `nep_valid.json` + `nep_test.json`) | Romanization variants per Devanagari word (~2.4M Nepali pairs of inflected/conjugated forms) | CC0 (mined) + CC-BY (manual) |
 | [Nepali Wikipedia dump](https://dumps.wikimedia.org/newiki/) (`newiki-latest-pages-articles.xml.bz2`) | Frequency ranking — picks which 30k Devanagari headwords actually ship | CC-BY-SA |
-| `lemma_seed.tsv` (in this directory) | Hand-curated bare-lemma backfill (~390 entries: pronouns, copula, numbers, common verbs, days/months, places, food, greetings) | This repo (MIT) |
+| `lemma_seed.tsv` (in this directory) | Hand-curated bare-lemma backfill (~670 entries: pronouns, copula, numbers, common verbs, days/months, places, food, greetings, common ट/ठ/ड/ढ/ण words) | This repo (MIT) |
 
 ### Why these three sources together
 
@@ -57,8 +57,8 @@ After the pipeline finishes, rebuild and install the IME:
 After a full run on the latest dump:
 
 ```
-[build] wrote 30,168 rows (29,229 unique headwords) to BundleResources/system_dict.tsv
-[build] seed: +304 new pairs, 82 frequency boosts on existing pairs
+[build] wrote 30,448 rows (29,379 unique headwords) to BundleResources/system_dict.tsv
+[build] seed: +584 new pairs, 82 frequency boosts on existing pairs
 [build] 20,953 ranked words had no Aksharantar coverage (skipped — could be filled with IndicXlit later)
 [eval] 68/68 pairs found (100.0%)
 ```
@@ -94,7 +94,7 @@ scripts/corpus/
 ├── fetch_wiki_freq.py     newiki dump → work/corpus/frequencies.tsv
 ├── fetch_aksharantar.py   HF nep.zip → work/corpus/aksharantar_nep.tsv
 ├── build_dict.py          combine + lemma_seed → BundleResources/system_dict.tsv
-├── lemma_seed.tsv         hand-curated bare-lemma backfill (~390 entries)
+├── lemma_seed.tsv         hand-curated bare-lemma backfill (~670 entries)
 ├── eval_pairs.tsv         hand-curated regression set (~70 pairs)
 ├── eval.py                check eval_pairs against generated dict
 └── run_all.sh             venv setup + orchestrates all 4 steps
