@@ -23,8 +23,10 @@ COMPONENT_PKG="$DIST_DIR/component.pkg"
 FINAL_PKG="$DIST_DIR/$APP_NAME.pkg"
 
 # Read version from Info.plist so the pkg version tracks the bundle.
-VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" \
-    "$ROOT_DIR/BundleResources/Info.plist" 2>/dev/null || echo "0.1.0")
+# NEPALI_IME_VERSION (set by the release workflow) overrides it; bundle.sh
+# stamps the same value into the app.
+VERSION="${NEPALI_IME_VERSION:-$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" \
+    "$ROOT_DIR/BundleResources/Info.plist" 2>/dev/null || echo "0.1.0")}"
 
 echo "==> Building app bundle (delegates to bundle.sh)"
 "$ROOT_DIR/scripts/bundle.sh"

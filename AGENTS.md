@@ -45,6 +45,8 @@ scripts/
 ├── install.sh             # bundle.sh + cp to ~/Library/Input Methods/
 ├── uninstall.sh           # remove the .app and (optionally) user data
 ├── make_pkg.sh            # bundle.sh + pkgbuild + productbuild → .pkg
+├── next_version.sh        # next release version (Info.plist base + git tags)
+├── should_release.sh      # skip releases for docs-only changes
 ├── make_icon.swift        # regenerate MenuIcon.icns + PaletteIcon.icns
 ├── corpus/                # Python pipeline to regenerate system_dict.tsv
 │                          # from Aksharantar + Wikipedia + lemma seed
@@ -117,6 +119,28 @@ Canonical sequence for a redistributable package with a refreshed dictionary:
 ./scripts/corpus/run_all.sh   # rebuild the ~30k dictionary into BundleResources/
 ./scripts/make_pkg.sh         # → dist/NepaliIME.pkg
 ```
+
+### Releases
+
+Every merge to `main` publishes a GitHub release: the `release` job in
+`.github/workflows/ci.yml` runs after `test` passes and attaches
+`NepaliIME-<version>.pkg`, `NepaliIME-<version>.app.zip` and
+`SHA256SUMS.txt`, with notes generated from the merged PRs.
+
+- **Version:** `scripts/next_version.sh` takes `CFBundleShortVersionString`
+  from `Info.plist` (X.Y.Z). If tag `vX.Y.Z` doesn't exist it releases that;
+  otherwise it bumps the patch of the highest `vX.Y.*` tag. So merges go
+  `0.1.0`, `0.1.1`, `0.1.2`, …; to start `0.2.x` or `1.0.x`, change the
+  version in `Info.plist` in a PR.
+- CI stamps the version into the bundled `Info.plist` and the `.pkg` via
+  `NEPALI_IME_VERSION` (and `CFBundleVersion` via `NEPALI_IME_BUILD`, the
+  workflow run number); the committed `Info.plist` keeps only the base.
+- **Docs-only merges don't release.** `scripts/should_release.sh` compares
+  HEAD with the last release tag. If only `README.md` (at any level),
+  `AGENTS.md` or `CLAUDE.md` changed, the release is skipped. Tests still run.
+  The next shipping merge releases everything since that tag, docs included.
+- Releases are queued (concurrency group `release`), and re-running the job
+  on an already-released commit is a no-op.
 
 ## Debugging
 
@@ -432,7 +456,10 @@ icon cache is otherwise sticky.
 ## Conventions for coding agents
 
 - Run `swift test` before committing. CI (`.github/workflows/ci.yml`) runs
-  `swift test` and `./scripts/bundle.sh` on every PR.
+  `swift test` and `./scripts/bundle.sh` on every PR, and publishes a
+  release on every merge to `main` that changes more than docs (see
+  [Releases](#releases)). Anything
+  merged ships, so keep `main` releasable.
 - Add a test for any behaviour change. The IMK controller and the NSPanel are
   not unit tested — verify those manually in TextEdit.
 - Keep the [Behaviour spec](#behaviour-spec) and [Ranking](#ranking) sections,

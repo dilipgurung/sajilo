@@ -43,6 +43,14 @@ cp "$BUILT_BIN" "$MACOS_DIR/$APP_NAME"
 chmod +x "$MACOS_DIR/$APP_NAME"
 
 cp "$ROOT_DIR/BundleResources/Info.plist" "$CONTENTS/Info.plist"
+# Release builds (CI) stamp the version into the bundled copy; the
+# committed Info.plist only carries the base version.
+if [[ -n "${NEPALI_IME_VERSION:-}" ]]; then
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $NEPALI_IME_VERSION" "$CONTENTS/Info.plist"
+fi
+if [[ -n "${NEPALI_IME_BUILD:-}" ]]; then
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEPALI_IME_BUILD" "$CONTENTS/Info.plist"
+fi
 cp "$ROOT_DIR/BundleResources/system_dict.tsv" "$RESOURCES_DIR/system_dict.tsv"
 
 # Sanity-check the dictionary size — refuse to ship the 150-word
