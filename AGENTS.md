@@ -134,8 +134,8 @@ Keep this section in sync with the code.
 
 | Key | Action |
 |---|---|
-| Latin letters | Append to buffer; refresh candidates |
-| Backspace | Trim buffer (or exit composition if empty) |
+| Latin letters | Insert into the buffer at the caret; refresh candidates |
+| Backspace | Delete the character before the caret (exit composition if the buffer empties; no-op with the caret at the start) |
 | Space | Commit the highlighted candidate, then insert a literal space |
 | Return | Commit the highlighted candidate; caret stays at end of word (no newline inserted) |
 | Shift+Return | Commit the raw Roman buffer as typed (no conversion) |
@@ -144,6 +144,7 @@ Keep this section in sync with the code.
 | Digits 1–9 | Commit candidate at that index |
 | Punctuation | Commit the *highlighted* candidate (not necessarily #1), then insert the punctuation |
 | Arrow Up/Down | Move candidate selection |
+| Arrow Left/Right | Move the caret within the Roman buffer (clamped to its ends); never commits |
 | Cmd / Ctrl chord | Pass through unchanged |
 
 ### Period-to-danda auto-conversion

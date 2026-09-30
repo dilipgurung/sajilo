@@ -31,6 +31,7 @@ If you've been handed a `NepaliIME.pkg`:
 | Shift+Return | Commit the typed Roman letters as-is |
 | Tab / 1–9 | Commit the first / Nth candidate |
 | ↑ ↓ | Move the highlight |
+| ← → | Move within the word being typed, to fix a letter |
 | Esc | Cancel |
 | `.` after Devanagari | Becomes `।` |
 | Digits | Become `०`–`९` |
