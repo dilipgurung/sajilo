@@ -206,6 +206,10 @@ than one way. The default (longest-match) reading ranks first.
 - **`ri`** → ऋ / ृ only at word start or after a consonant. After a vowel
   (e.g. `hari`) it is र + ि → हरि. After a consonant the split reading is
   also offered as an alternative (`pri` → प्रि).
+- **`ng`** → ङ by default, keeping the `g` as its own consonant before more
+  input (`sangeet` → सङ्गीत, `sangh` → सङ्घ); at word end both letters fold
+  into ङ (`rang` → रङ). Plain न is the alternative (सन्गीत).
+- **`ny`** → न्य by default (`anya` → अन्य); ञ is the alternative (अञ).
 
 Committing an alternative teaches the learner, so the preferred reading is
 top of the list next time.
@@ -213,7 +217,7 @@ top of the list next time.
 ### Romanization
 
 The user-facing mapping (vowels, consonants, capital-letter retroflex,
-`\` `*` `**`, and the rarer `ri` `rri` `rree` `om` `yna`) lives in the README's
+`\` `*` `**`, and the rarer `ri` `rri` `rree` `ng` `ny` `om` `yna`) lives in the README's
 [Typing guide](README.md#typing-guide), which is the single source for it.
 Keep it in sync with `Engine/RuleTransliterator.swift`. This section only
 covers what the README leaves out.
@@ -222,7 +226,7 @@ Aliases not in the README: `ii` = `ee` (ई), `uu` = `oo` (ऊ), `c` / `q` = `k`
 (क), `z` = `j` (ज). Consonants the README calls "obvious": `k g j t d n p b
 m y r l s h` → क ग ज त द न प ब म य र ल स ह.
 
-Capitals follow the ITRANS convention. `T Th D Dh N S` are retroflex and also
+Capitals follow the ITRANS convention. `T Th D Dh N S Sh` are retroflex and also
 emit the dental reading as an alternative, so `Dilip` offers डिलिप then
 दिलिप. Other capitals (`K`, `M`, `P`, …) have no retroflex pair: they fall back
 to the lowercase reading with no alternatives.

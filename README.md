@@ -63,11 +63,11 @@ Add `h` for the aspirated form: `kh` → ख, `gh` → घ, `jh` → झ, `th` �
 
 **Capitals give the retroflex letters.** Lowercase `t d n s` are dental.
 
-| `T` | `Th` | `D` | `Dh` | `N` | `S` |
+| `T` | `Th` | `D` | `Dh` | `N` | `S` / `Sh` |
 |---|---|---|---|---|---|
 | ट | ठ | ड | ढ | ण | ष |
 
-`Thulo` → ठुलो and `gaNesh` → गणेश. The lowercase reading is still offered
+`Thulo` → ठुलो, `gaNesh` → गणेश and `riShi` → ऋषि. The lowercase reading is still offered
 as an alternative.
 
 Special keys, typed as part of the word:
@@ -87,6 +87,8 @@ Less common letters:
 | `ri` | ृ after a consonant, ऋ at the start of a word | `kripaa` → कृपा, `prithvee` → पृथ्वी (after a vowel it stays रि: `hari` → हरि) |
 | `rri` | Same as `ri`, for when you want it explicit | `rri` → ऋ |
 | `rree` | ॄ / ॠ (long vocalic R) | `rree` → ॠ |
+| `ng` | ङ | `sangeet` → सङ्गीत, `rang` → रङ (न्ग is the alternative) |
+| `ny` | न्य, with ञ as the alternative | `kanyaa` → कन्या |
 | `om` | ॐ at the start of a word | `om` → ॐ (ओम is the alternative) |
 | `yna` | ञ | `yna` → ञ (य्न is the alternative) |
 
