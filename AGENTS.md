@@ -46,6 +46,7 @@ scripts/
 ├── uninstall.sh           # remove the .app and (optionally) user data
 ├── make_pkg.sh            # bundle.sh + pkgbuild + productbuild → .pkg
 ├── next_version.sh        # next release version (Info.plist base + git tags)
+├── should_release.sh      # skip releases for docs-only changes
 ├── make_icon.swift        # regenerate MenuIcon.icns + PaletteIcon.icns
 ├── corpus/                # Python pipeline to regenerate system_dict.tsv
 │                          # from Aksharantar + Wikipedia + lemma seed
@@ -134,6 +135,10 @@ Every merge to `main` publishes a GitHub release: the `release` job in
 - CI stamps the version into the bundled `Info.plist` and the `.pkg` via
   `NEPALI_IME_VERSION` (and `CFBundleVersion` via `NEPALI_IME_BUILD`, the
   workflow run number); the committed `Info.plist` keeps only the base.
+- **Docs-only merges don't release.** `scripts/should_release.sh` compares
+  HEAD with the last release tag. If only `README.md` (at any level),
+  `AGENTS.md` or `CLAUDE.md` changed, the release is skipped. Tests still run.
+  The next shipping merge releases everything since that tag, docs included.
 - Releases are queued (concurrency group `release`), and re-running the job
   on an already-released commit is a no-op.
 
@@ -452,7 +457,8 @@ icon cache is otherwise sticky.
 
 - Run `swift test` before committing. CI (`.github/workflows/ci.yml`) runs
   `swift test` and `./scripts/bundle.sh` on every PR, and publishes a
-  release on every merge to `main` (see [Releases](#releases)). Anything
+  release on every merge to `main` that changes more than docs (see
+  [Releases](#releases)). Anything
   merged ships, so keep `main` releasable.
 - Add a test for any behaviour change. The IMK controller and the NSPanel are
   not unit tested — verify those manually in TextEdit.

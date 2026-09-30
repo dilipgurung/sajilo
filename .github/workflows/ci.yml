@@ -39,10 +39,11 @@ jobs:
       - name: Pick version
         id: version
         run: |
-          # A re-run for a commit that was already released is a no-op.
-          existing=$(git tag --points-at HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)
-          if [[ -n "$existing" ]]; then
-            echo "Commit already released as $existing; skipping."
+          # No release for an already-released commit (job re-run) or when
+          # only README/AGENTS/CLAUDE.md changed since the last release.
+          decision=$(./scripts/should_release.sh)
+          if [[ "$decision" != "yes" ]]; then
+            echo "Skipping release (${decision#no: })."
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
