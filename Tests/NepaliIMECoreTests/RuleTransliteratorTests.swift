@@ -356,4 +356,41 @@ final class RuleTransliteratorTests: XCTestCase {
             }
         }
     }
+
+    // MARK: - ny, ng, Sh
+
+    func testNyIsDentalNPlusYaByDefault() {
+        // न्य is far more common in Nepali than ञ.
+        XCTAssertEqual(first("dhanyabaad"), "धन्यबाद")
+        XCTAssertEqual(first("anya"), "अन्य")
+        XCTAssertEqual(first("kanyaa"), "कन्या")
+    }
+
+    func testNyOffersPalatalNasalAsAlternative() {
+        XCTAssertEqual(all("nya").first, "न्य")
+        XCTAssertTrue(all("nya").contains("ञ"))
+        XCTAssertTrue(all("anya").contains("अञ"))
+    }
+
+    func testNgBeforeMoreInputIsVelarNasalPlusGa() {
+        XCTAssertEqual(first("sangeet"), "सङ्गीत")
+        XCTAssertEqual(first("mangal"), "मङ्गल")
+        XCTAssertEqual(first("angrejee"), "अङ्ग्रेजी")
+        XCTAssertEqual(first("sangh"), "सङ्घ")
+    }
+
+    func testNgAtWordEndIsVelarNasal() {
+        XCTAssertEqual(first("rang"), "रङ")
+        XCTAssertTrue(all("rang").contains("रन्ग"))
+    }
+
+    func testNgOffersDentalNAsAlternative() {
+        XCTAssertTrue(all("sangeet").contains("सन्गीत"))
+    }
+
+    func testCapitalShIsRetroflexWithDentalAlternative() {
+        XCTAssertEqual(first("riShi"), "ऋषि")
+        XCTAssertTrue(all("riShi").contains("ऋशि"))
+        XCTAssertEqual(first("shaanti"), "शान्ति")
+    }
 }
