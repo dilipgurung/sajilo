@@ -80,6 +80,16 @@ Special keys, typed as part of the word:
 
 After a word is already typed, `\` and `*` still add ् and ं to it.
 
+Less common letters:
+
+| Type | Gives | Example |
+|---|---|---|
+| `ri` | ृ after a consonant, ऋ at the start of a word | `kripaa` → कृपा, `prithvee` → पृथ्वी (after a vowel it stays रि: `hari` → हरि) |
+| `rri` | Same as `ri`, for when you want it explicit | `rri` → ऋ |
+| `rree` | ॄ / ॠ (long vocalic R) | `rree` → ॠ |
+| `om` | ॐ at the start of a word | `om` → ॐ (ओम is the alternative) |
+| `yna` | ञ | `yna` → ञ (य्न is the alternative) |
+
 ## Adding your own words
 
 Choose **Open User Dictionary…** from the IME's input-source menu and add one

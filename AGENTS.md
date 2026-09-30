@@ -213,7 +213,7 @@ top of the list next time.
 ### Romanization
 
 The user-facing mapping (vowels, consonants, capital-letter retroflex,
-`\` `*` `**`) lives in the README's
+`\` `*` `**`, and the rarer `ri` `rri` `rree` `om` `yna`) lives in the README's
 [Typing guide](README.md#typing-guide), which is the single source for it.
 Keep it in sync with `Engine/RuleTransliterator.swift`. This section only
 covers what the README leaves out.
@@ -235,14 +235,10 @@ reading, two when the input has capitals, always gets a slot):
 - `miThaai` → मिठाइ (with मिथाइ also offered).
 - `daakTar` → दाक्टर (with दाक्तर alternative).
 
-Rarer tokens, not in the README:
-
-| Roman | Devanagari | Notes |
-|---|---|---|
-| `om` | ॐ (Om) | Only at word start — `om` → ॐ (with ओम as alt) |
-| `yna` | ञ (palatal nasal) | Alt: य्न |
-| `rri` | ऋ / ृ (vocalic R) | Like `ri`: vocalic only at word start or after a consonant; `harri` → हर्रि |
-| `rree` | ॠ / ॄ (long vocalic R) | Alt: र्री |
+Word-start specials: `om` → ॐ fires whenever the buffer *starts* with `om`
+(`omkaar` → ॐकार by default, ओम्कार as an alternative). `ri` / `rri` /
+`rree` are vocalic only at word start or after a consonant, so `harri` →
+हर्रि. `yna` (ञ) is the only token with a split alternative (य्न).
 
 Adjacent consonants automatically get a halant between them (`gar` → गर,
 `garchha` → गर्छ). The final consonant keeps its inherent schwa (Nepali
