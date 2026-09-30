@@ -35,6 +35,7 @@ If you've been handed a `NepaliIME.pkg`:
 | Esc | Cancel |
 | `.` after Devanagari | Becomes `।` |
 | Digits | Become `०`–`९` |
+| Caps Lock | English mode: letters, digits and `.` are typed as-is |
 
 ## Typing guide
 
@@ -77,7 +78,8 @@ ones (त-row).** Each pair differs only by Shift:
 For example, `daal` → दाल (lentils) but `Daal` → डाल (branch). Likewise
 `Thulo` → ठुलो, `gaNesh` → गणेश and `riShi` → ऋषि. A capital also offers
 the lowercase reading as an alternative, so a word you capitalize by
-accident still shows up. The other capitals (`K`, `M`, `P`, …) are the same
+accident still shows up. Use Shift for these capitals: with Caps Lock on,
+the IME types English instead (see Basic keys). The other capitals (`K`, `M`, `P`, …) are the same
 as lowercase.
 
 Special keys, typed as part of the word:
