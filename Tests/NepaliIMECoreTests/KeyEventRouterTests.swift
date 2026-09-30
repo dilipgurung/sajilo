@@ -117,6 +117,39 @@ final class KeyEventRouterTests: XCTestCase {
         XCTAssertEqual(action, .appendChar("A"))
     }
 
+    // MARK: - Caps Lock = English pass-through
+
+    func testCapsLockLetterPassesThroughWhenIdle() {
+        XCTAssertEqual(capsLock("N", composing: false), .passThrough)
+        XCTAssertEqual(capsLock("N", composing: false, shift: true), .passThrough)
+    }
+
+    func testCapsLockLetterCommitsWordInProgressThenInserts() {
+        XCTAssertEqual(capsLock("U", composing: true), .commitSelectedThenInsert("U"))
+    }
+
+    func testCapsLockKeepsCompositionControlKeys() {
+        // A word started before Caps Lock went on can still be finished.
+        XCTAssertEqual(capsLock(" ", composing: true), .commitSelected)
+        XCTAssertEqual(capsLock("\u{8}", composing: true), .backspace)
+        XCTAssertEqual(capsLock("1", composing: true), .selectIndex(0))
+    }
+
+    func testEnglishModeFollowsCapsLockOnly() {
+        XCTAssertTrue(KeyEventRouter.isEnglishMode([.capsLock]))
+        XCTAssertTrue(KeyEventRouter.isEnglishMode([.capsLock, .shift]))
+        XCTAssertFalse(KeyEventRouter.isEnglishMode([.shift]))
+        XCTAssertFalse(KeyEventRouter.isEnglishMode([]))
+    }
+
+    private func capsLock(_ chars: String, composing: Bool, shift: Bool = false) -> KeyAction {
+        KeyEventRouter.classify(
+            characters: chars,
+            modifierFlags: shift ? [.capsLock, .shift] : [.capsLock],
+            hasComposition: composing
+        )
+    }
+
     private func classify(_ chars: String, composing: Bool) -> KeyAction {
         KeyEventRouter.classify(
             characters: chars,

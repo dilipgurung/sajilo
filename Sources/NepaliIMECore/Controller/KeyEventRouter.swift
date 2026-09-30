@@ -16,6 +16,14 @@ public enum KeyAction: Sendable, Equatable {
 }
 
 public enum KeyEventRouter {
+    /// Caps Lock turns the IME into an English pass-through: letters (and,
+    /// in the controller, idle digits and punctuation) reach the app as
+    /// typed. Devanagari has no case, and retroflex is Shift+letter, which
+    /// works the same with Caps Lock on or off.
+    public static func isEnglishMode(_ modifierFlags: NSEvent.ModifierFlags) -> Bool {
+        modifierFlags.contains(.capsLock)
+    }
+
     public static func classify(
         characters: String?,
         modifierFlags: NSEvent.ModifierFlags,
@@ -62,6 +70,11 @@ public enum KeyEventRouter {
         }
 
         if first.isASCII, first.isLetter {
+            if isEnglishMode(mods) {
+                // Finish a word started before Caps Lock went on, then
+                // let the letter through.
+                return hasComposition ? .commitSelectedThenInsert(String(first)) : .passThrough
+            }
             return .appendChar(first)
         }
 

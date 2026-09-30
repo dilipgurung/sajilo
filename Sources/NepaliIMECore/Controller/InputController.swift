@@ -75,7 +75,9 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         // (or one space past it). No commit-history tracking required —
         // works for words pasted in or typed in earlier sessions, not
         // just freshly-committed ones.
-        if !_state.hasBuffer {
+        // Caps Lock (English mode) skips all of these: digits, `.`, `\` and
+        // `*` go through untouched.
+        if !_state.hasBuffer, !KeyEventRouter.isEnglishMode(event.modifierFlags) {
             let chars = event.characters ?? ""
             // Period-to-danda: `.` after a Devanagari word (or one space
             // past) becomes `।`.

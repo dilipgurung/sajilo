@@ -146,6 +146,29 @@ Keep this section in sync with the code.
 | Arrow Up/Down | Move candidate selection |
 | Arrow Left/Right | Move the caret within the Roman buffer (clamped to its ends); never commits |
 | Cmd / Ctrl chord | Pass through unchanged |
+| Caps Lock on | English mode, see below |
+
+### Caps Lock: English mode
+
+Devanagari has no case, and retroflex is Shift+letter (on macOS Shift still
+gives a capital with Caps Lock on), so Caps Lock is free to mean "type
+English", as it does for CJK input methods.
+
+With Caps Lock on:
+
+- Letters pass through as typed; no composition, no candidate window.
+  If a word was being composed, the highlighted candidate is committed first
+  and the letter is inserted after it.
+- In idle, digits stay ASCII, `.` stays a period, and `\` / `*` stay literal.
+- A composition started before Caps Lock went on can still be finished:
+  Space, Return, Tab, 1–9, arrows, Backspace and Esc behave as usual.
+
+macOS also has a "Use Caps Lock to switch to and from ABC" setting. When it
+is on, Caps Lock is expected to switch input sources instead (not yet
+verified with NepaliIME).
+
+Code: `KeyEventRouter.isEnglishMode` and the idle branch of
+`InputController.handleOnMain`.
 
 ### Period-to-danda auto-conversion
 
@@ -171,8 +194,7 @@ literally.
 ### Devanagari digits
 
 While the Nepali IME is the active input source, ASCII digits typed in idle
-become `०१२३४५६७८९`. (There is no opt-out; switch to the ABC input source
-for ASCII digits.)
+become `०१२३४५६७८९`. For ASCII digits, turn on Caps Lock (English mode).
 
 - `123` → `१२३`
 - `namaste<Tab>123` → `नमस्ते१२३`
@@ -436,5 +458,3 @@ icon cache is otherwise sticky.
   few client apps (Electron, some Java) implement poorly. The panel may
   appear at the wrong position, and auto-danda doesn't work there.
 - No Preferences window yet (toggle learning, view paths, reset learner).
-- Devanagari digits have no opt-out; switch to the ABC input source for ASCII
-  digits.
