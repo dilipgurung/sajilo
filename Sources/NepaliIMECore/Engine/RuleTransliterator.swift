@@ -12,11 +12,13 @@ import Foundation
 /// Tuned for Nepali typing conventions:
 ///   - Inherent schwa is preserved at end of word (दिलिप, not दिलिप्).
 ///   - Consonant-consonant junctions get a halant inserted automatically.
-///   - Lowercase `t/d/n/s` are dental; capital `T/D/N/S/Th/Dh` are
+///   - Lowercase `t/d/n/s` are dental; capital `T/D/N/S/Th/Dh/Sh` are
 ///     retroflex (ITRANS convention) and also emit the dental reading as
 ///     an alternative. Other capitals fall back to their lowercase reading.
 ///   - `ri` is vocalic R (ऋ/ृ) only at word start or after a consonant
 ///     other than `r`; after a vowel (`hari`) it is र + ि.
+///   - `ng` is ङ (keeping the `g` before more input: सङ्गीत); `ny` is
+///     न्य. `Sh` is ष, like the other retroflex capitals.
 ///
 /// Branching points (where multiple parses are emitted):
 ///   - **Single `a` after a consonant before more input.** Default:
@@ -28,6 +30,8 @@ import Foundation
 ///     emit anusvara (ं) on the previous syllable (`gain → गैं`).
 ///   - **Vocalic R tokens (`ri`, `rri`, `rree`).** Alternative: split
 ///     into र + vowel (`pri → प्रि`, `rishi → रिशि`).
+///   - **`ng` / `ny`.** Alternatives: plain न for `ng` (सन्गीत), ञ for
+///     `ny` (अञ).
 ///
 /// Pure value type, `Sendable`, no I/O.
 public struct RuleTransliterator: Sendable {
@@ -37,8 +41,8 @@ public struct RuleTransliterator: Sendable {
     /// Returns up to `maxAlternatives` plausible Devanagari parses,
     /// deduped, longest-match default first. Empty array for empty input.
     ///
-    /// Case is significant for retroflex disambiguation: `T/D/N/S/Th/Dh`
-    /// match the retroflex consonants (ट/ड/ण/ष/ठ/ढ) AND emit a dental
+    /// Case is significant for retroflex disambiguation: `T/D/N/S/Th/Dh/Sh`
+    /// match the retroflex consonants (ट/ड/ण/ष/ठ/ढ/ष) AND emit a dental
     /// alternative as a multi-candidate parse. Other capital letters
     /// (`K`, `M`, ...) silently fall back to their lowercase reading.
     public func transliterate(_ roman: String, maxAlternatives: Int = 4) -> [String] {
@@ -139,7 +143,7 @@ public struct RuleTransliterator: Sendable {
             if key != lowerKey, let c = consonantTable[lowerKey] {
                 // Capital letter w/o its own table entry — silently
                 // degrade to the lowercase reading. (Only retroflex
-                // T/D/N/S/Th/Dh have explicit uppercase entries.)
+                // T/D/N/S/Th/Dh/Sh have explicit uppercase entries.)
                 matched = (.consonant(lowerKey, c), size); break
             }
         }
@@ -233,9 +237,28 @@ public struct RuleTransliterator: Sendable {
             }
 
         case .consonant(let raw, let glyph):
+            let prefix = (lastConsonant != nil) ? "्" : ""
+            let next: Character? = pos + m.len < chars.count ? chars[pos + m.len] : nil
+
+            // `ng` is the velar nasal ङ, ranked above the plain न reading.
+            // Before more input the `g` stays a consonant of its own, so
+            // `sangeet` → सङ्गीत, `sangh` → सङ्घ, `angrejee` → अङ्ग्रेजी.
+            // At word end both letters fold into ङ: `rang` → रङ.
+            if raw == "n", next == "g" {
+                let gIsLast = pos + m.len + 1 >= chars.count
+                parse(
+                    chars: chars,
+                    pos: pos + m.len + (gIsLast ? 1 : 0),
+                    output: output + prefix + "ङ",
+                    lastConsonant: gIsLast ? "ng" : "n",
+                    prevWasExplicitVowel: false,
+                    results: &results,
+                    cap: cap
+                )
+            }
+
             // Default emission: insert halant before this consonant if the
             // previous emission was also a consonant (cluster).
-            let prefix = (lastConsonant != nil) ? "्" : ""
             parse(
                 chars: chars,
                 pos: pos + m.len,
@@ -279,6 +302,21 @@ public struct RuleTransliterator: Sendable {
                     pos: pos + m.len,
                     output: output + "ं",
                     lastConsonant: nil,
+                    prevWasExplicitVowel: false,
+                    results: &results,
+                    cap: cap
+                )
+            }
+
+            // Alternative: `ny` as the palatal nasal ञ. The default reads it
+            // as न्य, which is far more common (`anya` → अन्य, `kanyaa` →
+            // कन्या).
+            if raw == "n", next == "y" {
+                parse(
+                    chars: chars,
+                    pos: pos + m.len + 1,
+                    output: output + prefix + "ञ",
+                    lastConsonant: "ny",
                     prevWasExplicitVowel: false,
                     results: &results,
                     cap: cap
@@ -381,19 +419,18 @@ public struct RuleTransliterator: Sendable {
         // 3-char palatal nasal token. Multi-candidate alt: y + halant + n + a.
         "yna": "ञ",
 
-        // 2-char retroflex aspirates (case-sensitive — capital letter
-        // marks retroflex, ITRANS convention). Both readings reach the
+        // 2-char retroflex aspirates and `Sh` (case-sensitive — capital
+        // letter marks retroflex, ITRANS convention). Both readings reach the
         // candidate window via the dental-alternative branch.
         "Th": "ठ",
         "Dh": "ढ",
+        "Sh": "ष",
 
         // 2-char aspirates / common digraphs (lowercase = dental).
         "kh": "ख",
         "gh": "घ",
-        "ng": "ङ",
         "ch": "च",
         "jh": "झ",
-        "ny": "ञ",
         "th": "थ",
         "dh": "ध",
         "ph": "फ",

@@ -146,6 +146,29 @@ Keep this section in sync with the code.
 | Arrow Up/Down | Move candidate selection |
 | Arrow Left/Right | Move the caret within the Roman buffer (clamped to its ends); never commits |
 | Cmd / Ctrl chord | Pass through unchanged |
+| Caps Lock on | English mode, see below |
+
+### Caps Lock: English mode
+
+Devanagari has no case, and retroflex is Shift+letter (on macOS Shift still
+gives a capital with Caps Lock on), so Caps Lock is free to mean "type
+English", as it does for CJK input methods.
+
+With Caps Lock on:
+
+- Letters pass through as typed; no composition, no candidate window.
+  If a word was being composed, the highlighted candidate is committed first
+  and the letter is inserted after it.
+- In idle, digits stay ASCII, `.` stays a period, and `\` / `*` stay literal.
+- A composition started before Caps Lock went on can still be finished:
+  Space, Return, Tab, 1–9, arrows, Backspace and Esc behave as usual.
+
+macOS also has a "Use Caps Lock to switch to and from ABC" setting. When it
+is on, Caps Lock is expected to switch input sources instead (not yet
+verified with NepaliIME).
+
+Code: `KeyEventRouter.isEnglishMode` and the idle branch of
+`InputController.handleOnMain`.
 
 ### Period-to-danda auto-conversion
 
@@ -171,8 +194,7 @@ literally.
 ### Devanagari digits
 
 While the Nepali IME is the active input source, ASCII digits typed in idle
-become `०१२३४५६७८९`. (There is no opt-out; switch to the ABC input source
-for ASCII digits.)
+become `०१२३४५६७८९`. For ASCII digits, turn on Caps Lock (English mode).
 
 - `123` → `१२३`
 - `namaste<Tab>123` → `नमस्ते१२३`
@@ -206,69 +228,43 @@ than one way. The default (longest-match) reading ranks first.
 - **`ri`** → ऋ / ृ only at word start or after a consonant. After a vowel
   (e.g. `hari`) it is र + ि → हरि. After a consonant the split reading is
   also offered as an alternative (`pri` → प्रि).
+- **`ng`** → ङ by default, keeping the `g` as its own consonant before more
+  input (`sangeet` → सङ्गीत, `sangh` → सङ्घ); at word end both letters fold
+  into ङ (`rang` → रङ). Plain न is the alternative (सन्गीत).
+- **`ny`** → न्य by default (`anya` → अन्य); ञ is the alternative (अञ).
 
 Committing an alternative teaches the learner, so the preferred reading is
 top of the list next time.
 
-### Romanization cheat sheet
+### Romanization
 
-Lowercase consonants are dental (त/द/न/स). **Capital letters mark
-retroflex** (ITRANS convention) and additionally emit the dental reading as
-an alternative, so `Dilip` still offers दिलिप.
+The user-facing mapping (vowels, consonants, capital-letter retroflex,
+`\` `*` `**`, and the rarer `ri` `rri` `rree` `ng` `ny` `om` `yna`) lives in the README's
+[Typing guide](README.md#typing-guide), which is the single source for it.
+Keep it in sync with `Engine/RuleTransliterator.swift`. This section only
+covers what the README leaves out.
 
-| Roman | Devanagari | Roman | Devanagari |
-|---|---|---|---|
-| `a` | अ | `aa` | आ |
-| `i` | इ | `ee` / `ii` | ई |
-| `u` | उ | `oo` / `uu` | ऊ |
-| `e` | ए | `ai` | ऐ |
-| `o` | ओ | `au` | औ |
-| `k` / `c` / `q` | क | `kh` | ख |
-| `g` | ग | `gh` | घ |
-| `ch` | च | `chh` | छ |
-| `j` / `z` | ज | `jh` | झ |
-| `t` | त (dental) | `th` | थ |
-| `d` | द (dental) | `dh` | ध |
-| `n` | न (dental) | `p` | प |
-| `ph` / `f` | फ | `b` | ब |
-| `bh` | भ | `m` | म |
-| `y` | य | `r` | र |
-| `l` | ल | `v` / `w` | व |
-| `s` | स | `sh` | श |
-| `h` | ह | `ksh` | क्ष |
-| `gy` | ज्ञ | `shr` | श्र |
-| `x` | क्स | | |
+Aliases not in the README: `ii` = `ee` (ई), `uu` = `oo` (ऊ), `c` / `q` = `k`
+(क), `z` = `j` (ज). Consonants the README calls "obvious": `k g j t d n p b
+m y r l s h` → क ग ज त द न प ब म य र ल स ह.
 
-**Capital-letter retroflex:**
+Capitals follow the ITRANS convention. `T Th D Dh N S Sh` are retroflex and also
+emit the dental reading as an alternative, so `Dilip` offers डिलिप then
+दिलिप. Other capitals (`K`, `M`, `P`, …) have no retroflex pair: they fall back
+to the lowercase reading with no alternatives.
 
-| Roman | Devanagari | Roman | Devanagari |
-|---|---|---|---|
-| `T` | ट | `Th` | ठ |
-| `D` | ड | `Dh` | ढ |
-| `N` | ण | `S` | ष |
+A single final `a` is the inherent schwa, so a final ा needs `aa`. `Tika` →
+टिक, `Tikaa` → टिका, `Teekaa` → टीका.
 
-Examples (rule-layer readings; dictionary words rank above them, but at
-least one rule reading — two when the input has capitals — always gets a slot):
-- `Tika` → टिक (use `Teeka` for टीका).
+Rule-layer examples (dictionary words rank above these, but at least one rule
+reading, two when the input has capitals, always gets a slot):
 - `miThaai` → मिठाइ (with मिथाइ also offered).
 - `daakTar` → दाक्टर (with दाक्तर alternative).
-- `Dilip` → डिलिप default; दिलिप as the alternative.
 
-Other capitals (`K`, `M`, `P`, …) have no retroflex pair and fall back to
-their lowercase reading with no alternatives.
-
-**Special characters** (type these within the same composition, before
-committing):
-
-| Roman | Devanagari | Use |
-|---|---|---|
-| `\` | ् (halant) | Suppresses the schwa of the previous consonant — `bas\` → बस् |
-| `*` | ं (anusvara) | Nasalization on the previous akshara — `man*` → मनं |
-| `**` | ँ (chandrabindu) | `kahaa**` → कहाँ |
-| `om` | ॐ (Om) | Only at word start — `om` → ॐ (with ओम as alt) |
-| `yna` | ञ (palatal nasal) | Alt: य्न |
-| `rri` | ऋ / ृ (vocalic R) | Like `ri`: vocalic only at word start or after a consonant; `harri` → हर्रि |
-| `rree` | ॠ / ॄ (long vocalic R) | Alt: र्री |
+Word-start specials: `om` → ॐ fires whenever the buffer *starts* with `om`
+(`omkaar` → ॐकार by default, ओम्कार as an alternative). `ri` / `rri` /
+`rree` are vocalic only at word start or after a consonant, so `harri` →
+हर्रि. `yna` (ञ) is the only token with a split alternative (य्न).
 
 Adjacent consonants automatically get a halant between them (`gar` → गर,
 `garchha` → गर्छ). The final consonant keeps its inherent schwa (Nepali
@@ -439,8 +435,8 @@ icon cache is otherwise sticky.
   `swift test` and `./scripts/bundle.sh` on every PR.
 - Add a test for any behaviour change. The IMK controller and the NSPanel are
   not unit tested — verify those manually in TextEdit.
-- Keep the [Behaviour spec](#behaviour-spec) and [Ranking](#ranking) sections
-  in sync with the code.
+- Keep the [Behaviour spec](#behaviour-spec) and [Ranking](#ranking) sections,
+  and the README's Basic keys and Typing guide, in sync with the code.
 - Never commit `work/`, `dist/`, `.venv-corpus/`, or `__pycache__`.
 - `system_dict.tsv` is generated by the corpus pipeline. To add words, edit
   `scripts/corpus/lemma_seed.tsv` and re-run `build_dict.py` instead of
@@ -462,5 +458,3 @@ icon cache is otherwise sticky.
   few client apps (Electron, some Java) implement poorly. The panel may
   appear at the wrong position, and auto-danda doesn't work there.
 - No Preferences window yet (toggle learning, view paths, reset learner).
-- Devanagari digits have no opt-out; switch to the ABC input source for ASCII
-  digits.
