@@ -1,0 +1,23 @@
+# Dependabot opens PRs when dependencies have new versions. CI runs on each
+# PR; nothing merges (or releases) without review.
+version: 2
+updates:
+  # GitHub Actions used by .github/workflows/ (e.g. actions/checkout), so
+  # runtime deprecations like Node 20 → 24 get picked up.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "CI"
+
+  # Swift packages from Package.swift / Package.resolved (GRDB).
+  - package-ecosystem: "swift"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "Deps"
