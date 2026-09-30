@@ -369,9 +369,9 @@ learning, delete the file.
    romanizations for inflected/conjugated forms.
 2. **Nepali Wikipedia frequency list** (CC-BY-SA) — ranks which Devanagari
    headwords ship.
-3. **`scripts/corpus/lemma_seed.tsv`** (hand-curated, ~390 entries) —
+3. **`scripts/corpus/lemma_seed.tsv`** (hand-curated, ~670 entries) —
    backfills bare lemmas (नेपाल, छ, हो, verb conjugations, numbers,
-   days/months, greetings) that Aksharantar lacks.
+   days/months, greetings, common ट/ठ/ड/ढ/ण words) that Aksharantar lacks.
 
 ```bash
 ./scripts/corpus/run_all.sh              # one-shot: venv + all 4 steps + eval (~10 min, ~700MB cache)
