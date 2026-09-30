@@ -62,6 +62,16 @@ final class KeyEventRouterTests: XCTestCase {
         XCTAssertEqual(classify("\u{F701}", composing: true), .moveSelection(+1))
     }
 
+    func testLeftRightMoveCaretInsteadOfCommitting() {
+        XCTAssertEqual(classify("\u{F702}", composing: true), .moveCaret(-1))
+        XCTAssertEqual(classify("\u{F703}", composing: true), .moveCaret(+1))
+    }
+
+    func testLeftRightPassThroughWhenIdle() {
+        XCTAssertEqual(classify("\u{F702}", composing: false), .passThrough)
+        XCTAssertEqual(classify("\u{F703}", composing: false), .passThrough)
+    }
+
     func testPunctuationCommitsAndInsertsWhenComposing() {
         XCTAssertEqual(classify(",", composing: true), .commitSelectedThenInsert(","))
         XCTAssertEqual(classify(".", composing: true), .commitSelectedThenInsert("."))

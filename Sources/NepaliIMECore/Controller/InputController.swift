@@ -214,6 +214,9 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         case .moveSelection(let delta):
             moveSelection(by: delta)
             return true
+        case .moveCaret(let delta):
+            moveCaret(by: delta, client: client)
+            return true
         case .commitSelectedThenInsert(let s):
             commitSelectedAndReset(client: client)
             // After committing, look at the document to decide what
@@ -239,30 +242,40 @@ public final class InputController: IMKInputController, @unchecked Sendable {
 
     @MainActor
     private func appendCharacter(_ ch: Character, client: Any?) {
-        var newBuffer: String
+        var newBuffer = CompositionBuffer()
         if case .composing(let b, _, _) = _state {
-            newBuffer = b + String(ch)
-        } else {
-            newBuffer = String(ch)
+            newBuffer = b
         }
+        newBuffer.insert(ch)
         _state = .composing(buffer: newBuffer, candidates: [], selectedIndex: 0)
         showMarkedText(buffer: newBuffer, client: client)
-        scheduleLookup(buffer: newBuffer, client: client)
+        scheduleLookup(buffer: newBuffer.text, client: client)
     }
 
     @MainActor
     private func backspace(client: Any?) {
-        guard case .composing(let buffer, _, _) = _state else { return }
-        let trimmed = String(buffer.dropLast())
-        if trimmed.isEmpty {
+        guard case .composing(var buffer, _, _) = _state else { return }
+        // Caret at the start: nothing before it to delete; keep composing.
+        guard buffer.caret > 0 else { return }
+        buffer.deleteBackward()
+        if buffer.isEmpty {
             clearMarkedText(client: client)
             _state = .idle
             _panel?.hide()
             return
         }
-        _state = .composing(buffer: trimmed, candidates: [], selectedIndex: 0)
-        showMarkedText(buffer: trimmed, client: client)
-        scheduleLookup(buffer: trimmed, client: client)
+        _state = .composing(buffer: buffer, candidates: [], selectedIndex: 0)
+        showMarkedText(buffer: buffer, client: client)
+        scheduleLookup(buffer: buffer.text, client: client)
+    }
+
+    @MainActor
+    private func moveCaret(by delta: Int, client: Any?) {
+        guard case .composing(var buffer, let candidates, let selected) = _state else { return }
+        buffer.moveCaret(by: delta)
+        // The buffer text is unchanged, so the candidates stay valid.
+        _state = .composing(buffer: buffer, candidates: candidates, selectedIndex: selected)
+        showMarkedText(buffer: buffer, client: client)
     }
 
     @MainActor
@@ -275,7 +288,7 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         let chosen = candidates[index]
         insertCommitted(chosen.output, client: client)
         if let engine = IMEServices.shared.engine {
-            let input = buffer
+            let input = buffer.text
             let output = chosen.output
             let source = chosen.source
             Task { await engine.recordSelection(input: input, output: output, source: source) }
@@ -290,7 +303,7 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         if !candidates.isEmpty, selected < candidates.count {
             commitCandidate(at: selected, client: client)
         } else {
-            insertCommitted(buffer, client: client)
+            insertCommitted(buffer.text, client: client)
             _state = .idle
             _panel?.hide()
         }
@@ -299,7 +312,7 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     @MainActor
     private func commitRawAndReset(client: Any?) {
         guard case .composing(let buffer, _, _) = _state else { return }
-        insertCommitted(buffer, client: client)
+        insertCommitted(buffer.text, client: client)
         _state = .idle
         _panel?.hide()
     }
@@ -324,8 +337,8 @@ public final class InputController: IMKInputController, @unchecked Sendable {
             await MainActor.run {
                 guard let self else { return }
                 guard self._lookupToken == token else { return }
-                guard case .composing(let currentBuffer, _, _) = self._state, currentBuffer == buffer else { return }
-                self._state = .composing(buffer: buffer, candidates: results, selectedIndex: 0)
+                guard case .composing(let current, _, _) = self._state, current.text == buffer else { return }
+                self._state = .composing(buffer: current, candidates: results, selectedIndex: 0)
                 if results.isEmpty {
                     self._panel?.hide()
                 } else {
@@ -337,14 +350,14 @@ public final class InputController: IMKInputController, @unchecked Sendable {
     }
 
     @MainActor
-    private func showMarkedText(buffer: String, client: Any?) {
+    private func showMarkedText(buffer: CompositionBuffer, client: Any?) {
         guard let textInput = client as? IMKTextInput else { return }
         // Marked text stays as the raw Roman buffer while composing — the
         // user sees what they typed. Devanagari renderings live in the
         // candidate window (including the rule-transliterated fallback)
         // and only land in the document when a candidate is committed.
         let attributed = NSAttributedString(
-            string: buffer,
+            string: buffer.text,
             attributes: [
                 .underlineStyle: NSUnderlineStyle.single.rawValue,
                 .underlineColor: NSColor.labelColor,
@@ -353,7 +366,7 @@ public final class InputController: IMKInputController, @unchecked Sendable {
         )
         textInput.setMarkedText(
             attributed,
-            selectionRange: NSRange(location: (buffer as NSString).length, length: 0),
+            selectionRange: NSRange(location: buffer.caretUTF16Offset, length: 0),
             replacementRange: NSRange(location: NSNotFound, length: 0)
         )
     }

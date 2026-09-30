@@ -10,6 +10,7 @@ public enum KeyAction: Sendable, Equatable {
     case cancel
     case selectIndex(Int)
     case moveSelection(Int)
+    case moveCaret(Int)            // Left/Right within the Roman buffer
     case commitSelectedThenInsert(String)
     case passThrough
 }
@@ -51,8 +52,12 @@ public enum KeyEventRouter {
             return hasComposition ? .moveSelection(-1) : .passThrough
         case "\u{F701}":
             return hasComposition ? .moveSelection(+1) : .passThrough
-        case "\u{F702}", "\u{F703}":
-            return hasComposition ? .commitSelected : .passThrough
+        case "\u{F702}":
+            // Left/Right edit the word being composed rather than
+            // committing it — only Space/Return/Tab/digits commit.
+            return hasComposition ? .moveCaret(-1) : .passThrough
+        case "\u{F703}":
+            return hasComposition ? .moveCaret(+1) : .passThrough
         default: break
         }
 
