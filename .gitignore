@@ -14,3 +14,8 @@ dist/
 # Corpus pipeline (scripts/corpus/) — large intermediates, regenerable
 work/
 .venv-corpus/
+
+# Python / editor
+__pycache__/
+*.pyc
+.vscode/

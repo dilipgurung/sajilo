@@ -23,5 +23,5 @@
     <choice id="com.gurungdilip.inputmethod.NepaliIME.pkg" visible="false">
         <pkg-ref id="com.gurungdilip.inputmethod.NepaliIME.pkg"/>
     </choice>
-    <pkg-ref id="com.gurungdilip.inputmethod.NepaliIME.pkg" version="0.1.0" auth="none">component.pkg</pkg-ref>
+    <pkg-ref id="com.gurungdilip.inputmethod.NepaliIME.pkg" version="__VERSION__" auth="none">component.pkg</pkg-ref>
 </installer-gui-script>

@@ -36,7 +36,7 @@ fi
 
 echo "==> Staging payload at $STAGING"
 COMPONENT_PLIST="$DIST_DIR/component.plist"
-rm -rf "$STAGING" "$COMPONENT_PKG" "$FINAL_PKG" "$COMPONENT_PLIST"
+rm -rf "$STAGING" "$COMPONENT_PKG" "$FINAL_PKG" "$COMPONENT_PLIST" "$DIST_DIR/distribution.xml"
 # Mirror the destination tree relative to / so pkgbuild's
 # --install-location=/ + the distribution.xml's
 # enable_currentUserHome=true gives us ~/Library/Input Methods/NepaliIME.app.
@@ -64,14 +64,18 @@ pkgbuild \
     "$COMPONENT_PKG"
 
 echo "==> Building distribution pkg with installer UI"
+# distribution.xml carries a __VERSION__ placeholder; Info.plist is the
+# single source of truth for the version.
+DISTRIBUTION_XML="$DIST_DIR/distribution.xml"
+sed "s/__VERSION__/$VERSION/g" "$ROOT_DIR/scripts/pkg_resources/distribution.xml" > "$DISTRIBUTION_XML"
 productbuild \
-    --distribution "$ROOT_DIR/scripts/pkg_resources/distribution.xml" \
+    --distribution "$DISTRIBUTION_XML" \
     --package-path "$DIST_DIR" \
     --resources "$ROOT_DIR/scripts/pkg_resources/resources" \
     "$FINAL_PKG"
 
 # Component pkg is an intermediate; productbuild has copied it inside.
-rm -f "$COMPONENT_PKG" "$COMPONENT_PLIST"
+rm -f "$COMPONENT_PKG" "$COMPONENT_PLIST" "$DISTRIBUTION_XML"
 rm -rf "$STAGING"
 
 PKG_SIZE=$(stat -f%z "$FINAL_PKG" 2>/dev/null || echo "?")

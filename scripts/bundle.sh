@@ -13,10 +13,13 @@ CONTENTS="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS/MacOS"
 RESOURCES_DIR="$CONTENTS/Resources"
 
-echo "==> Building $APP_NAME (release)..."
-swift build -c release --product "$APP_NAME"
+# Universal binary: the .pkg advertises arm64 + x86_64 hosts.
+BUILD_ARGS=(-c release --product "$APP_NAME" --arch arm64 --arch x86_64)
 
-BUILT_BIN="$(swift build -c release --product "$APP_NAME" --show-bin-path)/$APP_NAME"
+echo "==> Building $APP_NAME (release, universal)..."
+swift build "${BUILD_ARGS[@]}"
+
+BUILT_BIN="$(swift build "${BUILD_ARGS[@]}" --show-bin-path)/$APP_NAME"
 if [[ ! -x "$BUILT_BIN" ]]; then
     echo "ERROR: built binary not found at $BUILT_BIN" >&2
     exit 1
@@ -83,6 +86,6 @@ done
 
 echo "==> Ad-hoc signing..."
 codesign --force --sign - --timestamp=none --options=runtime "$APP_DIR"
-codesign --verify --deep --strict --verbose=2 "$APP_DIR" || true
+codesign --verify --deep --strict --verbose=2 "$APP_DIR"
 
 echo "==> Bundle ready: $APP_DIR"
