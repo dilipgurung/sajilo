@@ -8,7 +8,7 @@ final class SuggestionEngineTests: XCTestCase {
         XCTAssertTrue(results.isEmpty)
     }
 
-    func testReturnsRankedSystemCandidatesForPrefix() async {
+    func testReturnsExactMatchThenCompletionsByFrequency() async {
         let engine = makeEngine(dictPairs: [
             ("nam", "नाम", 50),
             ("namaste", "नमस्ते", 100),
@@ -18,7 +18,7 @@ final class SuggestionEngineTests: XCTestCase {
         let results = await engine.candidates(for: "nam")
         let outputs = results.map(\.output)
         XCTAssertFalse(outputs.contains("घर"))
-        XCTAssertEqual(outputs.first, "नमस्ते")
+        XCTAssertEqual(outputs, ["नाम", "नमस्ते", "नमुना"])
     }
 
     func testLearnedSelectionPromotesCandidate() async {
@@ -86,9 +86,37 @@ final class SuggestionEngineTests: XCTestCase {
         XCTAssertTrue(outputs.contains("नमुना"), "expected learned output नमुना in \(outputs)")
     }
 
+    // MARK: - Learner always consulted / exact-match tier
+
+    func testLearnerReordersEvenWhenDictFillsWindow() async {
+        // 20 dict matches fill the 9-slot window; a single recent pick of
+        // a lower-ranked completion must still promote it to the top.
+        let learner = FakeLearner()
+        let pairs: [(String, String, Int)] = (0..<20).map { i in
+            ("ma\(i)", "म\(i)", 100_000 - i)
+        }
+        let engine = makeEngine(dictPairs: pairs, learner: learner, ranker: Ranker())
+        await learner.injectBoost(input: "ma", output: "म15", freq: 1, when: Date())
+        let results = await engine.candidates(for: "ma", limit: 9)
+        XCTAssertEqual(results.first?.output, "म15")
+    }
+
+    func testExactMatchRanksAboveHigherFrequencyCompletions() async {
+        let engine = makeEngine(dictPairs: [
+            ("kati", "कति", 100_000),
+            ("karod", "करोड", 100_000),
+            ("kaa", "का", 10),
+        ])
+        let results = await engine.candidates(for: "kaa")
+        XCTAssertEqual(results.first?.output, "का")
+        let results2 = await engine.candidates(for: "Kaa")
+        XCTAssertEqual(results2.first?.output, "का", "exact match is case-insensitive")
+    }
+
     private func makeEngine(
         dictPairs: [(String, String, Int)],
-        learner: LearnerSource = NoopLearner()
+        learner: LearnerSource = NoopLearner(),
+        ranker: Ranker = Ranker()
     ) -> SuggestionEngine {
         var trie = Trie()
         for (input, output, freq) in dictPairs {
@@ -98,7 +126,7 @@ final class SuggestionEngineTests: XCTestCase {
             )
         }
         let dict = StaticDictionary(trie: trie)
-        return SuggestionEngine(dictionary: dict, learner: learner, ranker: Ranker())
+        return SuggestionEngine(dictionary: dict, learner: learner, ranker: ranker)
     }
 }
 

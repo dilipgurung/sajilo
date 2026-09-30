@@ -20,15 +20,18 @@ public actor SuggestionEngine {
 
     public func candidates(for romanInput: String, limit: Int = 9) async -> [Candidate] {
         guard !romanInput.isEmpty else { return [] }
-        let raw = dictionary.candidates(for: romanInput)
+        // Dictionary keys are lowercase; capitals only carry meaning for
+        // the rule layer (retroflex). Query both so `Kaa` still finds
+        // `kaa`, while a user-dict key typed with capitals still matches.
+        var raw = dictionary.candidates(for: romanInput)
+        let lowered = romanInput.lowercased()
+        if lowered != romanInput {
+            raw += dictionary.candidates(for: lowered)
+        }
 
-        // Skip the learner DB hit when the dict has already filled the
-        // candidate window — the learner can only contribute by ranking
-        // or by introducing new outputs, and there's no room for either.
-        let needsLearner = raw.count < limit
-        let boosts: [String: BoostScore] = needsLearner
-            ? await learner.boostScores(for: romanInput)
-            : [:]
+        // Always consult the learner: even when the dictionary fills the
+        // window, a previous pick must be able to reorder it.
+        let boosts = await learner.boostScores(for: romanInput)
 
         // Promote learned outputs that aren't already in the dict to
         // first-class candidates so an entry like
@@ -49,7 +52,7 @@ public actor SuggestionEngine {
 
         var result: [Candidate] = []
         if !merged.isEmpty {
-            let ranked = ranker.rank(candidates: merged, boosts: boosts, now: Date())
+            let ranked = ranker.rank(candidates: merged, boosts: boosts, now: Date(), input: romanInput)
             result = Array(ranked.prefix(limit))
         }
 

@@ -322,4 +322,32 @@ final class RuleTransliteratorTests: XCTestCase {
                       "expected dental alt दिलिप in \(parses)")
     }
 
+
+    // MARK: - Vocalic R placement and Latin leakage
+
+    func testRiAfterVowelIsRaPlusIMatra() {
+        XCTAssertEqual(first("hari"), "हरि")
+        XCTAssertEqual(first("giri"), "गिरि")
+        XCTAssertEqual(first("pari"), "परि")
+    }
+
+    func testRiAtWordStartAndAfterConsonantStaysVocalic() {
+        XCTAssertEqual(first("rishi"), "ऋशि")
+        XCTAssertEqual(first("kri"), "कृ")
+    }
+
+    func testRiAfterConsonantOffersSplitAlternative() {
+        XCTAssertTrue(all("priya").contains("प्रिय"), "\(all("priya"))")
+    }
+
+    func testUnmappedLatinLettersDoNotLeak() {
+        XCTAssertEqual(first("cat"), "कत")
+        XCTAssertEqual(first("zoo"), "जू")
+        XCTAssertEqual(first("xray"), "क्स्रय")
+        for w in ["cat", "zoo", "xray", "quick", "Cxqz"] {
+            for parse in all(w) {
+                XCTAssertFalse(parse.contains(where: { $0.isASCII && $0.isLetter }), "\(w) → \(parse)")
+            }
+        }
+    }
 }
