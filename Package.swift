@@ -9,7 +9,7 @@ let package = Package(
         .library(name: "NepaliIMECore", targets: ["NepaliIMECore"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.0.0"),
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.11.1"),
     ],
     targets: [
         .executableTarget(
