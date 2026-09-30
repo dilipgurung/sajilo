@@ -85,6 +85,14 @@ final class DictionaryManagerTests: XCTestCase {
         XCTAssertFalse(outputs.contains("क0"))
     }
 
+    func testCapitalizedKeysAreFoundByLowercaseInput() throws {
+        let sys = try writeTSV("system.tsv", lines: ["namaste\tनमस्ते\t100"])
+        let user = try writeTSV("user.tsv", lines: ["Kathmandu\tकाठमाडौं"])
+        let mgr = try DictionaryManager(systemDictURL: sys, userDictURL: user)
+        XCTAssertEqual(mgr.candidates(for: "kathmandu").first?.output, "काठमाडौं")
+        XCTAssertEqual(mgr.candidates(for: "Kathmandu").first?.output, "काठमाडौं")
+    }
+
     func testReloadUserDictionaryPicksUpEdits() throws {
         let sys = try writeTSV("system.tsv", lines: ["namaste\tनमस्ते\t100"])
         let user = try writeTSV("user.tsv", lines: ["kk\tकाठमाडौँ"])

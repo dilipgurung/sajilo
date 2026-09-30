@@ -299,6 +299,12 @@ final class RuleTransliteratorTests: XCTestCase {
         XCTAssertTrue(parses.contains("ऋ"), "expected ऋ in \(parses)")
     }
 
+    func testDoubledRAfterVowelIsRaCluster() {
+        XCTAssertEqual(first("harri"), "हर्रि")
+        XCTAssertFalse(all("rri").contains("रृ"), "\(all("rri"))")
+        XCTAssertFalse(all("harri").contains("हरृ"), "\(all("harri"))")
+    }
+
     func testRreeIsLongVocalicR() {
         let parses = all("rree")
         XCTAssertTrue(parses.contains("ॠ"), "expected ॠ in \(parses)")

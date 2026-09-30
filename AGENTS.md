@@ -217,7 +217,7 @@ an alternative, so `Dilip` still offers दिलिप.
 
 | Roman | Devanagari | Roman | Devanagari |
 |---|---|---|---|
-| `a` | अ | `aa` / `A` | आ |
+| `a` | अ | `aa` | आ |
 | `i` | इ | `ee` / `ii` | ई |
 | `u` | उ | `oo` / `uu` | ऊ |
 | `e` | ए | `ai` | ऐ |
@@ -246,7 +246,8 @@ an alternative, so `Dilip` still offers दिलिप.
 | `D` | ड | `Dh` | ढ |
 | `N` | ण | `S` | ष |
 
-Examples:
+Examples (rule-layer readings; dictionary words rank above them, but at
+least one rule reading — two when the input has capitals — always gets a slot):
 - `Tika` → टिक (use `Teeka` for टीका).
 - `miThaai` → मिठाइ (with मिथाइ also offered).
 - `daakTar` → दाक्टर (with दाक्तर alternative).
@@ -265,7 +266,7 @@ committing):
 | `**` | ँ (chandrabindu) | `kahaa**` → कहाँ |
 | `om` | ॐ (Om) | Only at word start — `om` → ॐ (with ओम as alt) |
 | `yna` | ञ (palatal nasal) | Alt: य्न |
-| `rri` | ऋ / ृ (vocalic R) | Alias for `ri` (also produces a split alt) |
+| `rri` | ऋ / ृ (vocalic R) | Like `ri`: vocalic only at word start or after a consonant; `harri` → हर्रि |
 | `rree` | ॠ / ॄ (long vocalic R) | Alt: र्री |
 
 Adjacent consonants automatically get a halant between them (`gar` → गर,
@@ -285,7 +286,7 @@ Normalization:
 - Collapse repeated identical vowels (`aa→a`, `ee→e`, …).
 
 Type `gai*DaakoT` once and commit गैंडाकोट; next time typing `gaidakot`
-surfaces it at the top. The literal `input` column still records exactly what
+surfaces it (ranked alongside dictionary completions rather than in the exact tier, since the literal input differs). The literal `input` column still records exactly what
 was typed.
 
 ## Ranking
@@ -293,8 +294,12 @@ was typed.
 Candidates are sorted in **tiers**:
 
 1. **Exact** — the dictionary key equals the typed input (case-insensitive),
-   OR the output has been learned for this input.
-2. **Prefix completions.**
+   OR the user picked this output for this *literal* input (case-insensitive)
+   recently: decayed uses ≥ 0.5, i.e. one pick stays exact for 21 days, two
+   picks for 42, and so on.
+2. **Everything else** — prefix completions, stale picks, and picks that only
+   matched through the learner's normalized key (a pick for `maa` still
+   boosts मा when typing `ma`, but never above the exact match म).
 
 Within a tier, candidates are ordered by
 
@@ -303,12 +308,17 @@ score = baseFrequency + α · uses · exp(−λ · ageDays)
 ```
 
 with `α = 100,000` (≈ the top system frequency, so one recent pick promotes a
-word to the top) and `λ = ln2/21d` (half-life 21 days). The learner is always
-consulted. Dictionary prefix lookups return **all exact matches plus only the
-top 32 completions by frequency** per dictionary, and query both the typed
-input and its lowercase form (dictionary keys are lowercase; capitals only
-matter to the rule layer). Rule-transliterated candidates are appended after
-the ranked list when there's room.
+word to the top) and `λ = ln2/21d` (half-life 21 days). Ties break on output
+so ordering is deterministic. The learner is always consulted.
+
+Dictionary keys are stored and queried lowercase (capitals only matter to the
+rule layer). Prefix lookups return all exact matches plus the top 32
+completions by frequency per dictionary.
+
+Rule-transliterated candidates come after the ranked list. When the window
+(9) is full, the rule layer still gets one slot — two if the input contains
+capitals, which ask for a retroflex reading — displacing prefix completions
+but never exact matches.
 
 Code: `Engine/Ranker.swift`, `Engine/SuggestionEngine.swift`,
 `Persistence/DictionaryManager.swift`.

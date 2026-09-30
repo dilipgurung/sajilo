@@ -64,6 +64,14 @@ final class TrieTests: XCTestCase {
         XCTAssertEqual(outputs, ["क", "कम", "कति"])
     }
 
+    func testCompletionOrderIsDeterministicOnFrequencyTies() {
+        var trie = Trie()
+        for w in ["kz", "ka", "km", "kb", "ky"] {
+            trie.insert(key: w, value: cand(w, w, 100))
+        }
+        XCTAssertEqual(trie.lookup(prefix: "k", completionLimit: 3).map(\.output), ["ka", "kb", "km"])
+    }
+
     private func cand(_ output: String, _ input: String, _ freq: Int) -> Candidate {
         Candidate(output: output, romanInput: input, baseFrequency: freq, source: .system)
     }

@@ -50,6 +50,7 @@ public actor UserLearner: LearnerSource {
     public func boostScores(for input: String) async -> [String: BoostScore] {
         let normalized = Self.normalizeForLearner(input)
         guard !normalized.isEmpty else { return [:] }
+        let literal = input.lowercased()
         do {
             return try await dbQueue.read { db in
                 // LIMIT 50 — the candidate window only ever shows ~9
@@ -58,7 +59,7 @@ public actor UserLearner: LearnerSource {
                 let rows = try Row.fetchAll(
                     db,
                     sql: """
-                    SELECT output, frequency, last_used
+                    SELECT input, output, frequency, last_used
                     FROM selections
                     WHERE normalized_input = ?
                     LIMIT 50
@@ -70,18 +71,21 @@ public actor UserLearner: LearnerSource {
                     let output: String = row["output"]
                     let freq: Int = row["frequency"]
                     let lastUsed: Double = row["last_used"]
+                    let matches = (row["input"] as String).lowercased() == literal
                     // Same output may appear from multiple literal keys
                     // that all normalize to the same value — sum the
                     // frequencies, keep the most-recent last_used.
                     if let prev = out[output] {
                         out[output] = BoostScore(
                             userFrequency: prev.userFrequency + freq,
-                            lastUsed: max(prev.lastUsed, Date(timeIntervalSince1970: lastUsed))
+                            lastUsed: max(prev.lastUsed, Date(timeIntervalSince1970: lastUsed)),
+                            matchesInput: prev.matchesInput || matches
                         )
                     } else {
                         out[output] = BoostScore(
                             userFrequency: freq,
-                            lastUsed: Date(timeIntervalSince1970: lastUsed)
+                            lastUsed: Date(timeIntervalSince1970: lastUsed),
+                            matchesInput: matches
                         )
                     }
                 }

@@ -21,19 +21,31 @@ public final class UserDictionaryWatcher: @unchecked Sendable {
     }
 
     public func start() {
-        queue.async { self.startOnQueue() }
+        queue.async {
+            self.ensureFileExists()
+            self.startOnQueue(retriesLeft: 0)
+        }
     }
 
     public func stop() {
         queue.async { self.stopOnQueue() }
     }
 
-    private func startOnQueue() {
-        stopOnQueue()
-        ensureFileExists()
+    /// Re-opens are retried briefly: editors that delete-then-recreate
+    /// leave a window where the file doesn't exist. We never create the
+    /// file here — doing so could race the editor's write.
+    private func startOnQueue(retriesLeft: Int) {
+        source?.cancel()
+        source = nil
         let fd = open(url.path, O_EVTONLY)
         guard fd >= 0 else {
-            Log.dict.error("UserDictionaryWatcher: cannot open \(self.url.path, privacy: .public)")
+            if retriesLeft > 0 {
+                queue.asyncAfter(deadline: .now() + .milliseconds(100)) {
+                    self.startOnQueue(retriesLeft: retriesLeft - 1)
+                }
+            } else {
+                Log.dict.error("UserDictionaryWatcher: cannot open \(self.url.path, privacy: .public)")
+            }
             return
         }
         let src = DispatchSource.makeFileSystemObjectSource(
@@ -46,7 +58,7 @@ public final class UserDictionaryWatcher: @unchecked Sendable {
             // Editors that save atomically replace the file; the old
             // descriptor then points at the unlinked inode, so re-open.
             if !src.data.isDisjoint(with: [.delete, .rename]) {
-                self.startOnQueue()
+                self.startOnQueue(retriesLeft: 20)
             }
             self.scheduleChange()
         }
@@ -58,6 +70,8 @@ public final class UserDictionaryWatcher: @unchecked Sendable {
     private func stopOnQueue() {
         source?.cancel()
         source = nil
+        pendingChange?.cancel()
+        pendingChange = nil
     }
 
     private func scheduleChange() {

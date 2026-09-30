@@ -29,7 +29,9 @@ public final class DictionaryManager: DictionarySource, @unchecked Sendable {
         try reloadUserDictionaryLocked()
     }
 
+    /// Keys are stored lowercase, so lookup ignores case.
     public func candidates(for prefix: String) -> [Candidate] {
+        let prefix = prefix.lowercased()
         lock.lock()
         defer { lock.unlock() }
         return systemTrie.lookup(prefix: prefix, completionLimit: completionLimit)
@@ -55,7 +57,7 @@ public final class DictionaryManager: DictionarySource, @unchecked Sendable {
                 baseFrequency: freq ?? 1,
                 source: .system
             )
-            trie.insert(key: input, value: cand)
+            trie.insert(key: input.lowercased(), value: cand)
             loaded += 1
         } onSkip: { _ in skipped += 1 }
         Log.dict.info("System dict: loaded \(loaded), skipped \(skipped)")
@@ -79,7 +81,7 @@ public final class DictionaryManager: DictionarySource, @unchecked Sendable {
                 baseFrequency: freq ?? Self.userDefaultFrequency,
                 source: .user
             )
-            trie.insert(key: input, value: cand)
+            trie.insert(key: input.lowercased(), value: cand)
         } onSkip: { _ in }
         self.userTrie = trie
     }

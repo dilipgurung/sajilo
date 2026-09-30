@@ -15,8 +15,8 @@ import Foundation
 ///   - Lowercase `t/d/n/s` are dental; capital `T/D/N/S/Th/Dh` are
 ///     retroflex (ITRANS convention) and also emit the dental reading as
 ///     an alternative. Other capitals fall back to their lowercase reading.
-///   - `ri` is vocalic R (ऋ/ृ) only at word start or after a consonant;
-///     after a vowel (`hari`) it is र + ि.
+///   - `ri` is vocalic R (ऋ/ृ) only at word start or after a consonant
+///     other than `r`; after a vowel (`hari`) it is र + ि.
 ///
 /// Branching points (where multiple parses are emitted):
 ///   - **Single `a` after a consonant before more input.** Default:
@@ -124,10 +124,12 @@ public struct RuleTransliterator: Sendable {
                 matched = (.special(glyph), size); break
             }
             if let v = vowelTable[lowerKey] {
-                // Vocalic R mid-word after a vowel (`hari`) reads as
-                // र + vowel — fall through to the shorter `r` token.
+                // Vocalic R mid-word after a vowel (`hari`) or after `r`
+                // itself (`harri`) reads as र + vowel — fall through to
+                // the shorter `r` token.
                 let midWordAfterVowel = pos > 0 && lastConsonant == nil
-                if !(midWordAfterVowel && lowerKey.hasPrefix("r")) {
+                let afterR = lastConsonant == "r"
+                if !((midWordAfterVowel || afterR) && lowerKey.hasPrefix("r")) {
                     matched = (.vowel(lowerKey, v), size); break
                 }
             }

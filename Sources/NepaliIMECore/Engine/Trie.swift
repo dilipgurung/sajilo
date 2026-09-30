@@ -33,8 +33,14 @@ public struct Trie: Sendable {
         for child in node.children.values {
             child.collect(into: &completions)
         }
+        // Dictionary iteration order varies per process; tie-break on
+        // output so the cut is deterministic.
+        completions.sort {
+            $0.baseFrequency != $1.baseFrequency
+                ? $0.baseFrequency > $1.baseFrequency
+                : $0.output < $1.output
+        }
         if completions.count > completionLimit {
-            completions.sort { $0.baseFrequency > $1.baseFrequency }
             completions.removeSubrange(completionLimit...)
         }
         return node.values + completions

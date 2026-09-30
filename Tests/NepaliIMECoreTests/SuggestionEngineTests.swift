@@ -113,10 +113,54 @@ final class SuggestionEngineTests: XCTestCase {
         XCTAssertEqual(results2.first?.output, "का", "exact match is case-insensitive")
     }
 
+    func testNormalizedOnlyLearnedPickDoesNotOutrankExactMatch() async {
+        // Picking मा for `maa` stores a boost under the normalized key `ma`.
+        // Typing `ma` must still show the exact match म first.
+        let learner = FakeLearner()
+        let engine = makeEngine(
+            dictPairs: [("ma", "म", 100_000), ("maa", "मा", 100_000)],
+            learner: learner
+        )
+        await learner.injectBoost(input: "ma", output: "मा", freq: 1, when: Date(), matchesInput: false)
+        let results = await engine.candidates(for: "ma")
+        XCTAssertEqual(results.first?.output, "म")
+    }
+
+    func testStaleLearnedPickDropsOutOfExactTier() async {
+        let learner = FakeLearner()
+        let engine = makeEngine(
+            dictPairs: [("nepal", "नेपाल", 100_000), ("nepalma", "नेपालमा", 6_740)],
+            learner: learner
+        )
+        let aYearAgo = Date().addingTimeInterval(-365 * 86_400)
+        await learner.injectBoost(input: "nep", output: "नेपालमा", freq: 1, when: aYearAgo)
+        let results = await engine.candidates(for: "nep")
+        XCTAssertEqual(results.first?.output, "नेपाल")
+    }
+
+    func testCapitalizedInputKeepsRuleReadingVisible() async {
+        // Lowercase completions for `dar` would fill the window; the rule
+        // layer's retroflex reading for `Dar` must still get a slot.
+        let pairs: [(String, String, Int)] = (0..<20).map { ("dar\($0)", "दर\($0)", 1000 - $0) }
+        let engine = makeEngine(dictPairs: pairs, fallback: RuleDictionarySource())
+        let results = await engine.candidates(for: "Dar", limit: 9)
+        XCTAssertEqual(results.count, 9)
+        XCTAssertTrue(results.contains { $0.output == "डर" }, "\(results.map(\.output))")
+    }
+
+    func testRuleReadingGetsASlotWhenCompletionsFillWindow() async {
+        let pairs: [(String, String, Int)] = (0..<20).map { ("dilip\($0)", "दिलिप\($0)", 1000 - $0) }
+        let engine = makeEngine(dictPairs: pairs, fallback: RuleDictionarySource())
+        let results = await engine.candidates(for: "dilip", limit: 9)
+        XCTAssertEqual(results.count, 9)
+        XCTAssertEqual(results.last?.output, "दिलिप")
+    }
+
     private func makeEngine(
         dictPairs: [(String, String, Int)],
         learner: LearnerSource = NoopLearner(),
-        ranker: Ranker = Ranker()
+        ranker: Ranker = Ranker(),
+        fallback: DictionarySource? = nil
     ) -> SuggestionEngine {
         var trie = Trie()
         for (input, output, freq) in dictPairs {
@@ -126,7 +170,7 @@ final class SuggestionEngineTests: XCTestCase {
             )
         }
         let dict = StaticDictionary(trie: trie)
-        return SuggestionEngine(dictionary: dict, learner: learner, ranker: ranker)
+        return SuggestionEngine(dictionary: dict, learner: learner, fallback: fallback, ranker: ranker)
     }
 }
 
@@ -146,11 +190,11 @@ private actor FakeLearner: LearnerSource {
     private var boosts: [String: [String: BoostScore]] = [:]
     private(set) var recordedCount = 0
 
-    func injectBoost(input: String, output: String, freq: Int, when: Date) {
+    func injectBoost(input: String, output: String, freq: Int, when: Date, matchesInput: Bool = true) {
         var perInput = boosts[input] ?? [:]
         let prev = perInput[output]
         let newFreq = (prev?.userFrequency ?? 0) + freq
-        perInput[output] = BoostScore(userFrequency: newFreq, lastUsed: when)
+        perInput[output] = BoostScore(userFrequency: newFreq, lastUsed: when, matchesInput: matchesInput)
         boosts[input] = perInput
     }
 
