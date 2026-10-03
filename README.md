@@ -13,8 +13,10 @@ future candidates based on what you pick.
 
 ## Install
 
-Download the latest `Sajilo-<version>.pkg` from
-[Releases](https://github.com/dilipgurung/sajilo/releases/latest), then:
+Download
+[Sajilo.pkg](https://github.com/dilipgurung/sajilo/releases/latest/download/Sajilo.pkg)
+(the latest version; older ones are on the
+[Releases](https://github.com/dilipgurung/sajilo/releases) page), then:
 
 1. **Right-click** the `.pkg` → **Open** (don't double-click — the installer
    is unsigned, so Gatekeeper blocks plain double-clicks). Click **Open** on

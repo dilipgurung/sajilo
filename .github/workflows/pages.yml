@@ -1,0 +1,57 @@
+name: Website
+
+# Builds the landing page from site/ + README.md (scripts/build_site.py).
+# PRs only build it, so a README change that breaks the page fails review;
+# main deploys it to GitHub Pages.
+on:
+  push:
+    branches: [main]
+    paths:
+      - README.md
+      - site/**
+      - scripts/build_site.py
+      - scripts/site_requirements.txt
+      - .github/workflows/pages.yml
+  pull_request:
+    paths:
+      - README.md
+      - site/**
+      - scripts/build_site.py
+      - scripts/site_requirements.txt
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Build site
+        run: |
+          pip install -r scripts/site_requirements.txt
+          python scripts/build_site.py
+      - uses: actions/upload-pages-artifact@v5
+        if: github.event_name != 'pull_request'
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
