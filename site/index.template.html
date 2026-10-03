@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sajilo · Type Nepali phonetically on your Mac</title>
+  <meta name="description" content="Sajilo is a free macOS input method for typing Nepali phonetically. Type namaste, get नमस्ते.">
+  <meta name="theme-color" content="oklch(97% 0.008 20)">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Eczar:wght@400;700;800&family=JetBrains+Mono:wght@400;500&family=Mukta:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#guide">Skip to the guide</a>
+
+  <header class="masthead">
+    <a class="wordmark" href="./" aria-label="Sajilo home">
+      <span class="wordmark-pennant" aria-hidden="true"></span>
+      <span class="wordmark-deva" lang="ne">सजिलो</span>
+      <span class="wordmark-latin">Sajilo</span>
+    </a>
+    <a class="masthead-link" href="{{repo_url}}">GitHub</a>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <h1 id="hero-title" class="hero-title">{{headline}}</h1>
+        <div class="hero-intro">{{intro}}</div>
+
+        <div class="download">
+          <a class="btn-download" href="{{repo_url}}/releases/latest/download/Sajilo.pkg">
+            Download for macOS
+          </a>
+          <p class="download-meta">
+            Free · macOS 14 or newer ·
+            <a href="{{repo_url}}/releases">All releases</a>
+          </p>
+          <p class="download-note">
+            <strong>Unsigned installer.</strong> A double-click is blocked, so
+            right-click <code>Sajilo.pkg</code> → <strong>Open</strong>, then
+            click Open again.
+          </p>
+        </div>
+      </div>
+
+      <figure class="demo" aria-labelledby="demo-caption">
+        <div class="demo-stage" aria-hidden="true">
+          <p class="demo-line" lang="ne"><span class="demo-committed"></span><span class="demo-marked">namaste</span><span class="demo-caret"></span></p>
+          <ol class="demo-panel">
+            <li class="is-selected"><span class="demo-num">1</span><span lang="ne">नमस्ते</span></li>
+            <li><span class="demo-num">2</span><span lang="ne">नामस्ते</span></li>
+          </ol>
+        </div>
+        <figcaption id="demo-caption" class="demo-caption">
+          Type in Roman letters, pick a word, press Space.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="traits" aria-label="What Sajilo does">
+      <p><strong>It learns what you pick.</strong> Choose a lower suggestion once
+        and it moves up the list next time.</p>
+      <p><strong>It spells words it has never seen.</strong> Names and new words get
+        a rule-based reading, so <code>dilip</code> still becomes <span lang="ne">दिलिप</span>.</p>
+      <p><strong>Caps Lock types English.</strong> No switching input sources for a
+        quick English word.</p>
+    </section>
+
+    <div class="guide" id="guide">
+      <nav class="guide-index" aria-label="Guide">
+        <p class="guide-index-title">Guide</p>
+        <ol>
+{{toc}}
+        </ol>
+      </nav>
+      <div class="guide-body">
+{{sections}}
+      </div>
+    </div>
+  </main>
+
+  <footer class="colophon">
+    <p>
+      <a href="{{repo_url}}">Source on GitHub</a>
+      <span aria-hidden="true">·</span>
+      <a href="{{repo_url}}/issues">Report a problem</a>
+      <span aria-hidden="true">·</span>
+      <a href="{{repo_url}}/blob/main/LICENSE">MIT licence</a>
+      <span aria-hidden="true">·</span>
+      <span>© 2026 Dilip Gurung</span>
+    </p>
+  </footer>
+
+  <script src="demo.js" defer></script>
+</body>
+</html>

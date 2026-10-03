@@ -2,8 +2,9 @@
 # Decide whether HEAD needs a release. Prints "yes" or "no: <reason>".
 #
 # Skips when everything changed since the last release tag is docs only:
-# README.md (at any level), AGENTS.md or CLAUDE.md. None of these ship in
-# the app. With no release tag yet, always releases.
+# README.md (at any level), AGENTS.md, CLAUDE.md, or the website (site/,
+# its build script and its workflow). None of these ship in the app. With
+# no release tag yet, always releases.
 set -euo pipefail
 
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
@@ -24,7 +25,7 @@ if [[ -z "$last" ]]; then
 fi
 
 shipping=$(git diff --name-only "$last" HEAD \
-    | grep -vE '(^|/)README\.md$|^AGENTS\.md$|^CLAUDE\.md$' || true)
+    | grep -vE '(^|/)README\.md$|^AGENTS\.md$|^CLAUDE\.md$|^site/|^scripts/build_site\.py$|^scripts/site_requirements\.txt$|^\.github/workflows/pages\.yml$' || true)
 if [[ -z "$shipping" ]]; then
     echo "no: only docs changed since $last"
 else
