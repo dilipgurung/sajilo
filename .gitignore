@@ -19,3 +19,8 @@ work/
 __pycache__/
 *.pyc
 .vscode/
+
+# Website (scripts/build_site.py)
+_site/
+.venv-site/
+.hallmark/

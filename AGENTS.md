@@ -17,8 +17,9 @@ file holds everything technical.
 5. [Ranking](#ranking)
 6. [Dictionaries](#dictionaries)
 7. [Icons](#icons)
-8. [Conventions for coding agents](#conventions-for-coding-agents)
-9. [Known limitations](#known-limitations)
+8. [Website](#website)
+9. [Conventions for coding agents](#conventions-for-coding-agents)
+10. [Known limitations](#known-limitations)
 
 ## Overview and layout
 
@@ -49,11 +50,13 @@ scripts/
 ├── make_pkg.sh            # bundle.sh + pkgbuild + productbuild → .pkg
 ├── next_version.sh        # next release version (Info.plist base + git tags)
 ├── should_release.sh      # skip releases for docs-only changes
+├── build_site.py          # site/ + README.md → _site/ (GitHub Pages)
 ├── make_icon.swift        # regenerate MenuIcon.icns + PaletteIcon.icns
 ├── corpus/                # Python pipeline to regenerate system_dict.tsv
 │                          # from Aksharantar + Wikipedia + lemma seed
 └── pkg_resources/         # Distribution.xml, postinstall, welcome/
                            # conclusion HTML for the .pkg installer
+site/                      # Landing page template, CSS, demo JS (see Website)
 ```
 
 Key design choices:
@@ -134,12 +137,17 @@ Every merge to `main` publishes a GitHub release: the `release` job in
   otherwise it bumps the patch of the highest `vX.Y.*` tag. So merges go
   `0.1.0`, `0.1.1`, `0.1.2`, …; to start `0.2.x` or `1.0.x`, change the
   version in `Info.plist` in a PR.
+- Each release also carries the `.pkg` under the fixed name `Sajilo.pkg`, so
+  `releases/latest/download/Sajilo.pkg` (the README and website download
+  link) always resolves to the newest version.
 - CI stamps the version into the bundled `Info.plist` and the `.pkg` via
   `SAJILO_VERSION` (and `CFBundleVersion` via `SAJILO_BUILD`, the
   workflow run number); the committed `Info.plist` keeps only the base.
 - **Docs-only merges don't release.** `scripts/should_release.sh` compares
   HEAD with the last release tag. If only `README.md` (at any level),
-  `AGENTS.md` or `CLAUDE.md` changed, the release is skipped. Tests still run.
+  `AGENTS.md`, `CLAUDE.md` or the website (`site/`, `scripts/build_site.py`,
+  `scripts/site_requirements.txt`, `.github/workflows/pages.yml`) changed,
+  the release is skipped. Tests still run.
   The next shipping merge releases everything since that tag, docs included.
 - Releases are queued (concurrency group `release`), and re-running the job
   on an already-released commit is a no-op.
@@ -455,6 +463,33 @@ After re-installing, **remove and re-add the input source** in System
 Settings → Keyboard → Input Sources for macOS to pick up the new files; its
 icon cache is otherwise sticky.
 
+## Website
+
+The landing page at <https://dilipgurung.github.io/sajilo/> is built from
+`site/` plus `README.md` by `scripts/build_site.py` and deployed by
+`.github/workflows/pages.yml` (Pages source: GitHub Actions). PRs that touch
+the site's inputs build it without deploying; merges to `main` deploy.
+
+- **The README is the content.** Its tagline and intro (between `# Sajilo` and
+  the first `##`) become the hero; every `##` section except "Building from
+  source / contributing" and "License" becomes a page section, in order. The
+  build fails if the intro or `## Install` is missing. Relative links are
+  rewritten to GitHub URLs; section ids match GitHub's anchors.
+- `site/index.template.html` holds the hand-written parts: download button,
+  unsigned-installer note, the three-line "what it does" strip and the hero
+  demo. `site/demo.js` replays typing `namaste` and `sajilo`; its candidate
+  lists come from `system_dict.tsv` (refresh them if the dictionary changes
+  a lot).
+- Design tokens live in `site/tokens.css`; `site/style.css` must use them
+  rather than raw colours or font names.
+
+Preview locally:
+
+```bash
+python3 -m venv .venv-site && .venv-site/bin/pip install -r scripts/site_requirements.txt
+.venv-site/bin/python scripts/build_site.py && python3 -m http.server -d _site 8000
+```
+
 ## Conventions for coding agents
 
 - Run `swift test` before committing. CI (`.github/workflows/ci.yml`) runs
@@ -466,7 +501,10 @@ icon cache is otherwise sticky.
   not unit tested — verify those manually in TextEdit.
 - Keep the [Behaviour spec](#behaviour-spec) and [Ranking](#ranking) sections,
   and the README's Basic keys and Typing guide, in sync with the code.
-- Never commit `work/`, `dist/`, `.venv-corpus/`, or `__pycache__`.
+- When changing the README's headings or intro, build the site
+  (see [Website](#website)) to check it still renders.
+- Never commit `work/`, `dist/`, `.venv-corpus/`, `_site/`, `.venv-site/` or
+  `__pycache__`.
 - Dependabot (`.github/dependabot.yml`) opens weekly PRs for GitHub Actions
   (grouped) and Swift packages. Review them like any PR: a major bump (e.g.
   GRDB 6 → 7) may need code changes, and merging ships a release.
