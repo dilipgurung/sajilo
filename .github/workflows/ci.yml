@@ -14,7 +14,10 @@ jobs:
         run: swift --version
       - name: Test
         run: swift test
+      # On main the release job builds the bundle itself (version-stamped),
+      # so only PRs need this check.
       - name: Build universal app bundle
+        if: github.event_name == 'pull_request'
         run: ./scripts/bundle.sh
 
   # Every merge to main publishes a GitHub release with the .pkg attached.
