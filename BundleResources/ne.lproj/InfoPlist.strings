@@ -1,0 +1,6 @@
+/* Bundle */
+"CFBundleName" = "सजिलो";
+"CFBundleDisplayName" = "सजिलो";
+
+/* Input modes */
+"com.gurungdilip.inputmethod.Sajilo.Nepali" = "नेपाली – फोनेटिक";

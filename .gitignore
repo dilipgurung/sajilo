@@ -1,0 +1,21 @@
+.DS_Store
+.build/
+.swiftpm/
+Packages/
+*.xcodeproj
+*.xcworkspace
+build/
+DerivedData/
+*.o
+*.dylib
+Sajilo.app/
+dist/
+
+# Corpus pipeline (scripts/corpus/) — large intermediates, regenerable
+work/
+.venv-corpus/
+
+# Python / editor
+__pycache__/
+*.pyc
+.vscode/

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="2">
+    <title>Sajilo</title>
+    <organization>com.gurungdilip.inputmethod</organization>
+    <options
+        customize="never"
+        require-scripts="true"
+        rootVolumeOnly="false"
+        hostArchitectures="arm64,x86_64"/>
+    <!-- Per-user install only: lands in ~/Library/Input Methods/, no sudo. -->
+    <domains
+        enable_currentUserHome="true"
+        enable_localSystem="false"
+        enable_anywhere="false"/>
+    <welcome file="welcome.html"/>
+    <conclusion file="conclusion.html"/>
+    <choices-outline>
+        <line choice="default">
+            <line choice="com.gurungdilip.inputmethod.Sajilo.pkg"/>
+        </line>
+    </choices-outline>
+    <choice id="default" title="Sajilo"/>
+    <choice id="com.gurungdilip.inputmethod.Sajilo.pkg" visible="false">
+        <pkg-ref id="com.gurungdilip.inputmethod.Sajilo.pkg"/>
+    </choice>
+    <pkg-ref id="com.gurungdilip.inputmethod.Sajilo.pkg" version="__VERSION__" auth="none">component.pkg</pkg-ref>
+</installer-gui-script>

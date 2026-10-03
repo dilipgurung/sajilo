@@ -1,0 +1,6 @@
+/* Bundle */
+"CFBundleName" = "Sajilo";
+"CFBundleDisplayName" = "Sajilo";
+
+/* Input modes — keys must match TISInputSourceID values from ComponentInputModeDict */
+"com.gurungdilip.inputmethod.Sajilo.Nepali" = "Nepali – Phonetic";

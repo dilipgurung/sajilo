@@ -1,0 +1,764 @@
+# Lemma seed for the Sajilo bundled dictionary.
+#
+# Aksharantar's Nepali split is mined from running text and contains
+# mostly inflected forms (नेपालको, गरेको, थियो) — bare lemmas like
+# नेपाल, छ, हो, मन, राम are absent or rare. This file backfills the
+# bare-lemma layer with hand-curated pairs.
+#
+# build_dict.py overlays this file on top of the Aksharantar pairs:
+# rows here win on collision and are guaranteed to ship in
+# system_dict.tsv. Default frequency is 100000 (well above the
+# Wikipedia top-frequency words ~38000) so seeded lemmas outrank
+# corpus-mined inflected variants.
+#
+# Format: roman<TAB>devanagari<TAB>optional_frequency
+# Lines starting with # are comments. Multiple romanizations per
+# Devanagari word are encouraged (typing-style variance).
+# Frequency column is optional — defaults to 100000.
+
+# ===================================================================
+# PRONOUNS
+# ===================================================================
+ma	म
+m	म
+hami	हामी
+haami	हामी
+mero	मेरो
+hamro	हाम्रो
+haamro	हाम्रो
+hamile	हामीले
+timi	तिमी
+timro	तिम्रो
+timile	तिमीले
+tapai	तपाईं
+tapain	तपाईं
+tapaain	तपाईं
+tapaiko	तपाईंको
+tapainko	तपाईंको
+yo	यो
+tyo	त्यो
+yi	यी
+ti	ती
+yas	यस
+yasko	यसको
+yasle	यसले
+tyasle	त्यसले
+uni	उनी
+unle	उनले
+usko	उसको
+usle	उसले
+
+# ===================================================================
+# POSTPOSITIONS / PARTICLES
+# ===================================================================
+le	ले
+lai	लाई
+laai	लाई
+maa	मा
+sanga	सँग
+sangai	सँगै
+bata	बाट
+baata	बाट
+dekhi	देखि
+samma	सम्म
+ko	को
+kaa	का
+ki	की
+malai	मलाई
+hamilai	हामीलाई
+timilai	तिमीलाई
+
+# ===================================================================
+# COPULA — PRESENT
+# ===================================================================
+cha	छ
+chha	छ
+chu	छु
+chhu	छु
+chau	छौ
+chhau	छौ
+chan	छन्
+chhan	छन्
+chin	छिन्
+chaina	छैन
+chhaina	छैन
+chainan	छैनन्
+ho	हो
+hoo	हो
+hoina	होइन
+haina	होइन
+hoinan	होइनन्
+hunchha	हुन्छ
+huncha	हुन्छ
+hunna	हुन्न
+hudaina	हुँदैन
+
+# ===================================================================
+# COPULA — PAST / FUTURE
+# ===================================================================
+thiyo	थियो
+theo	थियो
+thiye	थिए
+thie	थिए
+thien	थिएन
+bhayo	भयो
+bhae	भए
+bhaena	भएन
+hola	होला
+holaa	होला
+hunecha	हुनेछ
+
+# ===================================================================
+# NUMBERS
+# ===================================================================
+ek	एक
+ekh	एक
+dui	दुई
+duii	दुई
+tin	तीन
+teen	तीन
+char	चार
+chaar	चार
+panch	पाँच
+paanch	पाँच
+pancha	पाँच
+chha	छ
+cha_six	छ
+sat	सात
+saat	सात
+aath	आठ
+aatha	आठ
+nau	नौ
+das	दस
+dash	दस
+egar	एघार
+egara	एघार
+bara	बाह्र
+bahra	बाह्र
+tera	तेह्र
+chauda	चौध
+pandhra	पन्ध्र
+sora	सोह्र
+satra	सत्र
+athra	अठ्ठार
+unnais	उन्नाइस
+bis	बीस
+bish	बीस
+tis	तीस
+chalis	चालीस
+chaalis	चालीस
+pachas	पचास
+sath	साठी
+saathi_num	साठी
+sattari	सत्तरी
+asi	असी
+nabbe	नब्बे
+say	सय
+hajar	हजार
+hajaar	हजार
+laakh	लाख
+lakh	लाख
+karod	करोड
+
+# ===================================================================
+# COMMON VERBS — multiple conjugations
+# ===================================================================
+garnu	गर्नु
+garchu	गर्छु
+garcha	गर्छ
+garchau	गर्छौ
+garchan	गर्छन्
+garchin	गर्छिन्
+garna	गर्न
+garne	गर्ने
+garera	गरेर
+gardai	गर्दै
+garnus	गर्नुस्
+garnos	गर्नोस्
+khanu	खानु
+khanchu	खान्छु
+khancha	खान्छ
+khane	खाने
+khayo	खायो
+khaeko	खाएको
+khayeko	खाएको
+khana	खान
+janu	जानु
+janchu	जान्छु
+jancha	जान्छ
+jane	जाने
+gayo	गयो
+gayeko	गएको
+jana	जान
+aunu	आउनु
+aaunu	आउनु
+auncha	आउँछ
+ayo	आयो
+aaeko	आएको
+basnu	बस्नु
+baschu	बस्छु
+bascha	बस्छ
+sutnu	सुत्नु
+sutchu	सुत्छु
+parhnu	पढ्नु
+parhne	पढ्ने
+lekhnu	लेख्नु
+lekhne	लेख्ने
+bolnu	बोल्नु
+bolne	बोल्ने
+sunnu	सुन्नु
+hera	हेर
+hernu	हेर्नु
+herchu	हेर्छु
+herne	हेर्ने
+
+# ===================================================================
+# FAMILY
+# ===================================================================
+aama	आमा
+ama	आमा
+aamaa	आमा
+buwa	बुवा
+buba	बुबा
+baba	बाबा
+dai	दाइ
+daai	दाइ
+didi	दिदी
+bhai	भाइ
+bhaai	भाइ
+bahini	बहिनी
+chora	छोरा
+chhora	छोरा
+chori	छोरी
+chhori	छोरी
+nani	नानी
+budha	बूढा
+budhi	बूढी
+hajurba	हजुरबा
+hajurbuwa	हजुरबुवा
+hajuraama	हजुरआमा
+hajurama	हजुरआमा
+
+# ===================================================================
+# DAYS OF WEEK
+# ===================================================================
+aaitabar	आइतबार
+aaitabaar	आइतबार
+sombar	सोमबार
+sombaar	सोमबार
+mangalbar	मंगलबार
+budhabar	बुधबार
+budhabaar	बुधबार
+bihibar	बिहीबार
+bihibaar	बिहीबार
+sukrabar	शुक्रबार
+shukrabar	शुक्रबार
+sanibar	शनिबार
+shanibar	शनिबार
+
+# ===================================================================
+# MONTHS (Bikram Sambat)
+# ===================================================================
+baisakh	बैसाख
+baishakh	बैसाख
+jeth	जेठ
+asar	असार
+saun	साउन
+shrawan	श्रावण
+bhadau	भदौ
+asoj	असोज
+kartik	कार्तिक
+mangsir	मंसिर
+push	पुष
+magh	माघ
+fagun	फागुन
+chait	चैत
+
+# ===================================================================
+# TIME
+# ===================================================================
+aaja	आज
+aajai	आजै
+bholi	भोलि
+bholii	भोलि
+hijo	हिजो
+asti	अस्ति
+parsi	पर्सि
+bihana	बिहान
+bihaana	बिहान
+diuso	दिउसो
+beluka	बेलुका
+rati	राति
+samay	समय
+samaya	समय
+ghanta	घण्टा
+mahina	महिना
+barsha	वर्ष
+sal	साल
+saal	साल
+
+# ===================================================================
+# PLACES
+# ===================================================================
+nepal	नेपाल
+nepali	नेपाली
+kathmandu	काठमाडौं
+kathmaandu	काठमाडौं
+ktm	काठमाडौं
+pokhara	पोखरा
+biratnagar	विराटनगर
+lalitpur	ललितपुर
+bhaktapur	भक्तपुर
+patan	पाटन
+chitwan	चितवन
+dharan	धरान
+butwal	बुटवल
+janakpur	जनकपुर
+nepalgunj	नेपालगन्ज
+bharat	भारत
+chin	चीन
+china	चीन
+america	अमेरिका
+australia	अष्ट्रेलिया
+
+# ===================================================================
+# FOOD
+# ===================================================================
+bhat	भात
+daal	दाल
+dal	दाल
+tarkari	तरकारी
+chiya	चिया
+chiyaa	चिया
+pani	पानी
+paani	पानी
+dudh	दूध
+doodh	दूध
+chini	चिनी
+nun	नून
+momo	मोमो
+gundruk	गुन्द्रुक
+selroti	सेलरोटी
+khir	खीर
+kheer	खीर
+chiura	चिउरा
+chyura	चिउरा
+roti	रोटी
+sabji	सब्जी
+
+# ===================================================================
+# COMMON NOUNS
+# ===================================================================
+ghar	घर
+manche	मान्छे
+manchhe	मान्छे
+saathi	साथी
+sathi	साथी
+mitra	मित्र
+school	स्कूल
+karyalaya	कार्यालय
+kaam	काम
+kam	काम
+kura	कुरा
+kuro	कुरो
+samasya	समस्या
+khabar	खबर
+samachar	समाचार
+desh	देश
+des	देश
+sahar	शहर
+shahar	शहर
+gaau	गाउँ
+gaun	गाउँ
+sadak	सडक
+bato	बाटो
+baato	बाटो
+gadi	गाडी
+gaadi	गाडी
+mobile	मोबाइल
+phone	फोन
+kitab	किताब
+kalam	कलम
+ankha	आँखा
+mukh	मुख
+hath	हात
+khutta	खुट्टा
+naam	नाम
+nam	नाम
+nama	नाम
+mana	मन
+man	मन
+ram	राम
+rama	राम
+sita	सीता
+krishna	कृष्ण
+shiv	शिव
+
+# ===================================================================
+# ADJECTIVES
+# ===================================================================
+ramro	राम्रो
+naramro	नराम्रो
+thulo	ठूलो
+sano	सानो
+chito	चिटो
+dhilo	ढिलो
+nayaa	नयाँ
+naya	नयाँ
+purano	पुरानो
+seto	सेतो
+kalo	कालो
+nilo	नीलो
+neelo	नीलो
+hariyo	हरियो
+pilo	पीलो
+peelo	पीलो
+rato	रातो
+
+# ===================================================================
+# QUESTION WORDS
+# ===================================================================
+ke	के
+ko_who	को
+kahile	कहिले
+kahaa	कहाँ
+kahan	कहाँ
+kun	कुन
+kati	कति
+kasari	कसरी
+kina	किन
+
+# ===================================================================
+# CONJUNCTIONS / FILLERS
+# ===================================================================
+ra	र
+tara	तर
+athawa	अथवा
+ya	या
+yadi	यदि
+bhane	भने
+ani	अनि
+ta	त
+ni	नि
+re	रे
+po	पो
+hai	है
+
+# ===================================================================
+# GREETINGS / COURTESY
+# ===================================================================
+namaste	नमस्ते
+namastey	नमस्ते
+namaskar	नमस्कार
+namaskaar	नमस्कार
+dhanyabad	धन्यवाद
+dhanyabaad	धन्यवाद
+dhanyawad	धन्यवाद
+swagat	स्वागत
+swagatam	स्वागतम्
+maaf	माफ
+maph	माफ
+sorry_ne	माफ गर्नुहोस्
+
+# ===================================================================
+# CONJUNCTS (commonly mistyped — Hindi-trained models often miss these)
+# ===================================================================
+chetra	क्षेत्र
+kshetra	क्षेत्र
+gyan	ज्ञान
+gyaan	ज्ञान
+kshama	क्षमा
+chama	क्षमा
+prasna	प्रश्न
+prashna	प्रश्न
+ishwar	ईश्वर
+eeshwar	ईश्वर
+swayam	स्वयम्
+
+# ===================================================================
+# RETROFLEX WORDS (ट ठ ड ढ ण)
+# Common words Aksharantar has no romanization for. Lowercase keys,
+# since lookups ignore case. Frequency = Nepali Wikipedia count
+# (floor 1000) rather than the 100000 default, so these rank by real
+# usage instead of crowding out core lemmas.
+# ===================================================================
+rastriya	राष्ट्रिय	56966
+rashtriya	राष्ट्रिय	56966
+raashtriya	राष्ट्रिय	56966
+rastra	राष्ट्र	4603
+rashtra	राष्ट्र	4603
+raashtra	राष्ट्र	4603
+rastrapati	राष्ट्रपति	3255
+rashtrapati	राष्ट्रपति	3255
+janaganana	जनगणना	28050
+janganana	जनगणना	28050
+parti	पार्टी	17418
+paarti	पार्टी	17418
+party	पार्टी	17418
+futbal	फुटबल	17269
+phutbal	फुटबल	17269
+football	फुटबल	17269
+cricket	क्रिकेट	11679
+kriket	क्रिकेट	11679
+wada	वडा	9175
+wadaa	वडा	9175
+vada	वडा	9175
+euta	एउटा	8182
+eutaa	एउटा	8182
+eutai	एउटै	1000
+dakshin	दक्षिण	7901
+dachhin	दक्षिण	7901
+dakshini	दक्षिणी	1574
+karan	कारण	7703
+kaaran	कारण	7703
+kamyunist	कम्युनिस्ट	7603
+communist	कम्युनिस्ट	7603
+bibaran	विवरण	6472
+vivaran	विवरण	6472
+badhi	बढी	6107
+badhee	बढी	6107
+september	सेप्टेम्बर	5965
+septembar	सेप्टेम्बर	5965
+october	अक्टोबर	5899
+aktobar	अक्टोबर	5899
+december	डिसेम्बर	5820
+disembar	डिसेम्बर	5820
+website	वेबसाइट	5692
+websait	वेबसाइट	5692
+nirman	निर्माण	5583
+nirmaan	निर्माण	5583
+sadharan	साधारण	5358
+saadhaaran	साधारण	5358
+prishtha	पृष्ठ	5271
+prishth	पृष्ठ	5271
+patak	पटक	4504
+shrestha	श्रेष्ठ	4456
+tim	टिम	4403
+team	टिम	4403
+wata	वटा	3908
+wataa	वटा	3908
+vata	वटा	3908
+utkrishta	उत्कृष्ट	3694
+utkrisht	उत्कृष्ट	3694
+ghoshana	घोषणा	3684
+ghosana	घोषणा	3684
+model	मोडल	3321
+modal	मोडल	3321
+mahattwapurna	महत्त्वपूर्ण	2941
+mahatwapurna	महत्त्वपूर्ण	2941
+mahatvapurna	महत्त्वपूर्ण	2941
+pranali	प्रणाली	2876
+pranaalee	प्रणाली	2876
+purna	पूर्ण	2797
+poorna	पूर्ण	2797
+ganatantra	गणतन्त्र	2775
+television	टेलिभिजन	2523
+telibhijan	टेलिभिजन	2523
+thulo	ठुलो	2363
+thoolo	ठूलो	5651
+thula	ठूला	1116
+thoolaa	ठूला	1116
+kilometer	किलोमिटर	2355
+kilomitar	किलोमिटर	2355
+barnan	वर्णन	2302
+varnan	वर्णन	2302
+aakraman	आक्रमण	2123
+akraman	आक्रमण	2123
+sampurna	सम्पूर्ण	2102
+sanskaran	संस्करण	2032
+nirnaya	निर्णय	2005
+nirnay	निर्णय	2005
+agadi	अगाडि	1950
+agaadi	अगाडि	1950
+gathan	गठन	1936
+meter	मिटर	1923
+mitar	मिटर	1923
+puran	पुराण	1898
+puraan	पुराण	1898
+sanrakshan	संरक्षण	1869
+samrakshan	संरक्षण	1869
+bitaran	वितरण	1865
+vitaran	वितरण	1865
+charan	चरण	1706
+pahad	पहाड	1000
+pahaad	पहाड	1000
+pahadi	पहाडी	1579
+pahaadi	पहाडी	1579
+sarbashrestha	सर्वश्रेष्ठ	1498
+sarvashrestha	सर्वश्रेष्ठ	1498
+radio	रेडियो	1437
+rediyo	रेडियो	1437
+natak	नाटक	1339
+naatak	नाटक	1339
+internet	इन्टरनेट	1312
+intaranet	इन्टरनेट	1312
+degree	डिग्री	1293
+digri	डिग्री	1293
+ganana	गणना	1287
+pauranik	पौराणिक	1283
+record	रेकर्ड	1252
+rekard	रेकर्ड	1252
+paryatan	पर्यटन	1250
+stadium	स्टेडियम	1200
+stediyam	स्टेडियम	1200
+spasta	स्पष्ट	1156
+spashta	स्पष्ट	1156
+spasht	स्पष्ट	1156
+tippani	टिप्पणी	1158
+dollar	डलर	1063
+dalar	डलर	1063
+tapu	टापु	1056
+taapu	टापु	1056
+udaharan	उदाहरण	1000
+udaaharan	उदाहरण	1000
+brahman	ब्राह्मण	1000
+braahman	ब्राह्मण	1000
+parinam	परिणाम	1000
+parinaam	परिणाम	1000
+uchcharan	उच्चारण	1000
+ucharan	उच्चारण	1000
+banijya	वाणिज्य	1000
+vanijya	वाणिज्य	1000
+ghatana	घटना	1000
+ghatanaa	घटना	1000
+nirdharan	निर्धारण	1000
+thau	ठाउँ	1000
+thaau	ठाउँ	1000
+thaun	ठाउँ	1000
+code	कोड	1000
+kod	कोड	1000
+bhraman	भ्रमण	1000
+bishista	विशिष्ट	1000
+vishisht	विशिष्ट	1000
+vishishta	विशिष्ट	1000
+vatavaran	वातावरण	1000
+watawaran	वातावरण	1000
+baatavaran	वातावरण	1000
+khanda	खण्ड	1000
+computer	कम्प्युटर	1000
+kampyutar	कम्प्युटर	1000
+shikshan	शिक्षण	1000
+upakaran	उपकरण	1000
+thik	ठिक	1000
+thik	ठीक	1000
+theek	ठीक	1000
+tadha	टाढा	1000
+taadhaa	टाढा	1000
+tadhaa	टाढा	1000
+parikshan	परीक्षण	1000
+samrat	सम्राट	1000
+samraat	सम्राट	1000
+rin	ऋण	1000
+rinn	ऋण	1000
+namakaran	नामकरण	1000
+naamakaran	नामकरण	1000
+pramanit	प्रमाणित	1000
+praman	प्रमाण	1000
+pramaan	प्रमाण	1000
+kada	कडा	1000
+kadaa	कडा	1000
+bishleshan	विश्लेषण	1000
+vishleshan	विश्लेषण	1000
+swarna	स्वर्ण	1000
+sworna	स्वर्ण	1000
+baristha	वरिष्ठ	1000
+varishtha	वरिष्ठ	1000
+gramin	ग्रामीण	1000
+graameen	ग्रामीण	1000
+pusti	पुष्टि	1000
+pushti	पुष्टि	1000
+prashikshan	प्रशिक्षण	1000
+udan	उडान	1000
+udaan	उडान	1000
+prani	प्राणी	1000
+praanee	प्राणी	1000
+prakat	प्रकट	1000
+gun	गुण	1000
+guna	गुण	1000
+jod	जोड	1000
+jor	जोड	1000
+purnima	पूर्णिमा	1000
+khadi	खाडी	1000
+gaadha	गाढा	1000
+gaadhaa	गाढा	1000
+nasta	नष्ट	1000
+nashta	नष्ट	1000
+chhanaut	छनौट	1000
+chhanot	छनौट	1000
+tamatar	टमाटर	1000
+tamaatar	टमाटर	1000
+tomato	टमाटर	1000
+daal	डाल	1000
+dhoka	ढोका	1000
+dhokaa	ढोका	1000
+topi	टोपी	1000
+topee	टोपी	1000
+tebal	टेबल	1000
+kotha	कोठा	1000
+kothaa	कोठा	1000
+ghantaa	घण्टा	1000
+padcha	पढ्छ	1000
+padhyo	पढ्यो	1000
+padhai	पढाइ	1000
+padhaai	पढाइ	1000
+mithai	मिठाई	1000
+mithaai	मिठाई	1000
+doctor	डाक्टर	1000
+daktar	डाक्टर	1000
+daaktar	डाक्टर	1000
+jhandaa	झण्डा	8564
+dar	डर	1000
+dhungaa	ढुङ्गा	1000
+taauko	टाउको	1000
+pet	पेट	1000
+khuttaa	खुट्टा	1000
+oth	ओठ	1000
+ghanti	घाँटी	1000
+budhi	बुढी	1000
+ketaa	केटा	1000
+keti	केटी	1000
+moto	मोटो	1000
+tukraa	टुक्रा	1000
+thaado	ठाडो	1000
+danda	डाँडा	1000
+daandaa	डाँडा	1000
+dunga	डुङ्गा	1000
+dungaa	डुङ्गा	1000
+chhito	छिटो	1000
+bhot	भोट	1000
+vote	भोट	1000
+khat	खाट	1000
+khaat	खाट	1000
+path	पाठ	1071
+paath	पाठ	1071
+pathak	पाठक	1000
+paathak	पाठक	1000
+kathin	कठिन	1000
+tikat	टिकट	1000
+ticket	टिकट	1000
+pitho	पिठो	1000
+bot	बोट	1000
+thegaana	ठेगाना	1000
+telephone	टेलिफोन	1000
+telifon	टेलिफोन	1000
+pandit	पण्डित	1000
+kshan	क्षण	1000
+pran	प्राण	1000
+praan	प्राण	1000
+uthnu	उठ्नु	1000
+uth	उठ	1000
+todnu	तोड्नु	1000
+phutnu	फुट्नु	1000
+futnu	फुट्नु	1000
+chhutnu	छुट्नु	1000
+chhutti	छुट्टी	1000
+bhet	भेट	1000
+bhetnu	भेट्नु	1000
+pathaaunu	पठाउनु	1000
+pathaayo	पठायो	1000
+hidnu	हिँड्नु	1000
+hindnu	हिँड्नु	1000
+chadhnu	चढ्नु	1000
+pitnu	पिट्नु	1000
+udnu	उड्नु	1000
+lutnu	लुट्नु	1000
