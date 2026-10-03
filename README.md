@@ -122,11 +122,12 @@ Save the file and it reloads immediately — no restart needed.
 
 ## Uninstall
 
-Drag `~/Library/Input Methods/Sajilo.app` to the Trash. Optionally delete
-`~/Library/Application Support/Sajilo/` to remove your user dictionary and
-learned data. From a source checkout you can run `./scripts/uninstall.sh`
-instead. Afterwards, remove the stale "Nepali – Phonetic" entry in System Settings →
-Keyboard → Text Input → Edit.
+1. Drag `~/Library/Input Methods/Sajilo.app` to the Trash. From a source
+   checkout you can run `./scripts/uninstall.sh` instead.
+2. Optionally, delete `~/Library/Application Support/Sajilo/` to remove your
+   user dictionary and learned data.
+3. Remove the stale input source: **System Settings → Keyboard → Text Input →
+   Edit** → select **Nepali – Phonetic** → **−**.
 
 ## Building from source / contributing
 
