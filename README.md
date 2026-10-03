@@ -146,6 +146,27 @@ Save the file and it reloads immediately — no restart needed.
 
 See [AGENTS.md](AGENTS.md).
 
+## Credits
+
+Sajilo is built on these open-source projects and datasets:
+
+- [GRDB.swift](https://github.com/groue/GRDB.swift) (MIT), by Gwendal Roué,
+  stores what Sajilo learns in [SQLite](https://sqlite.org) (public domain).
+- [AI4Bharat Aksharantar](https://huggingface.co/datasets/ai4bharat/Aksharantar)
+  (CC0 / CC BY 4.0) supplies the Roman spellings in the bundled dictionary.
+- [Nepali Wikipedia](https://ne.wikipedia.org) (CC BY-SA 4.0) word
+  frequencies decide which words ship and how they rank.
+- The dictionary pipeline uses Hugging Face
+  [`datasets`](https://github.com/huggingface/datasets) (Apache-2.0) and
+  [tqdm](https://github.com/tqdm/tqdm) (MIT / MPL-2.0); the website uses
+  [Python-Markdown](https://github.com/Python-Markdown/markdown) (BSD-3-Clause)
+  and fonts from [Google Fonts](https://fonts.google.com) (SIL OFL 1.1).
+- Capital letters for retroflex consonants follow the
+  [ITRANS](https://en.wikipedia.org/wiki/ITRANS) convention.
+
+Full license texts: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), also
+included in the app bundle.
+
 ## License
 
 [MIT](LICENSE) © 2026 Dilip Gurung

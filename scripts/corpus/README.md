@@ -191,10 +191,7 @@ for v1.
 
 ## Distribution note
 
-Personal/dev install: no attribution required.
-
-If you redistribute the bundled dict outside personal use, add a
-`LICENSE-third-party` file crediting:
-
-- AI4Bharat Aksharantar (CC0 / CC-BY)
-- Wikimedia Foundation (CC-BY-SA on derived frequency data)
+Releases redistribute the bundled dict, so the attributions for Aksharantar
+(CC0 / CC BY 4.0) and Nepali Wikipedia (CC BY-SA 4.0) live in
+`THIRD_PARTY_NOTICES.md` at the repo root, which `bundle.sh` copies into the
+app. Keep it current if you add a data source.
