@@ -49,7 +49,7 @@ code {
   padding: 0.05em 0.35em;
   overflow-wrap: anywhere;
 }
-td code { white-space: nowrap; }
+th code, td code { white-space: nowrap; overflow-wrap: normal; }
 
 pre {
   font-family: var(--font-mono);
@@ -372,7 +372,7 @@ th, td {
   vertical-align: top;
   border-bottom: var(--rule-hair) solid var(--color-rule-2);
 }
-th { font-weight: 700; color: var(--color-ink); }
+th { font-weight: 700; color: var(--color-ink); white-space: nowrap; }
 tr:last-child td { border-bottom: 0; }
 td:lang(ne), td { line-height: 1.5; }
 
