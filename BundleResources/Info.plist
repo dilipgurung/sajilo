@@ -5,15 +5,15 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleExecutable</key>
-    <string>NepaliIME</string>
+    <string>Sajilo</string>
     <key>CFBundleIdentifier</key>
-    <string>com.gurungdilip.inputmethod.NepaliIME</string>
+    <string>com.gurungdilip.inputmethod.Sajilo</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>NepaliIME</string>
+    <string>Sajilo</string>
     <key>CFBundleDisplayName</key>
-    <string>Nepali IME</string>
+    <string>Sajilo</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -28,9 +28,9 @@
     <string>Copyright © 2026 Dilip Gurung. MIT License.</string>
 
     <key>InputMethodConnectionName</key>
-    <string>com_gurungdilip_inputmethod_NepaliIME_Connection</string>
+    <string>com_gurungdilip_inputmethod_Sajilo_Connection</string>
     <key>InputMethodServerControllerClass</key>
-    <string>NepaliIMEController</string>
+    <string>SajiloController</string>
 
     <key>tsInputMethodCharacterRepertoireKey</key>
     <array>
@@ -48,10 +48,10 @@
     <dict>
         <key>tsInputModeListKey</key>
         <dict>
-            <key>com.gurungdilip.inputmethod.NepaliIME.Nepali</key>
+            <key>com.gurungdilip.inputmethod.Sajilo.Nepali</key>
             <dict>
                 <key>TISInputSourceID</key>
-                <string>com.gurungdilip.inputmethod.NepaliIME.Nepali</string>
+                <string>com.gurungdilip.inputmethod.Sajilo.Nepali</string>
                 <key>TISIntendedLanguage</key>
                 <string>ne</string>
                 <key>tsInputModeAlternateMenuIconFileKey</key>
@@ -74,7 +74,7 @@
         </dict>
         <key>tsVisibleInputModeOrderedArrayKey</key>
         <array>
-            <string>com.gurungdilip.inputmethod.NepaliIME.Nepali</string>
+            <string>com.gurungdilip.inputmethod.Sajilo.Nepali</string>
         </array>
     </dict>
 </dict>

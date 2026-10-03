@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Uninstall NepaliIME from the current user's account.
+# Uninstall Sajilo from the current user's account.
 #
 # Removes the .app from ~/Library/Input Methods/, kills any running
 # instance, restarts the input agents so System Settings re-scans, and
 # (with confirmation) wipes the user dictionary + learner database
-# from ~/Library/Application Support/NepaliIME/.
+# from ~/Library/Application Support/Sajilo/.
 #
 # Usage:
 #     ./scripts/uninstall.sh              # interactive — asks before deleting user data
@@ -12,8 +12,8 @@
 #     ./scripts/uninstall.sh --all        # remove .app AND user data without prompting
 set -euo pipefail
 
-APP_PATH="$HOME/Library/Input Methods/NepaliIME.app"
-DATA_DIR="$HOME/Library/Application Support/NepaliIME"
+APP_PATH="$HOME/Library/Input Methods/Sajilo.app"
+DATA_DIR="$HOME/Library/Application Support/Sajilo"
 
 KEEP_DATA=0
 PURGE_DATA=0
@@ -27,9 +27,9 @@ case "${1:-}" in
         ;;
 esac
 
-echo "==> Stopping any running NepaliIME instance"
+echo "==> Stopping any running Sajilo instance"
 # pkill returns non-zero when nothing matched; that's fine.
-pkill -9 -f "Input Methods/NepaliIME.app" 2>/dev/null || true
+pkill -9 -f "Input Methods/Sajilo.app" 2>/dev/null || true
 
 if [[ -d "$APP_PATH" ]]; then
     echo "==> Removing $APP_PATH"
@@ -70,6 +70,6 @@ killall "ControlCenter"     >/dev/null 2>&1 || true
 
 echo
 echo "==> Done."
-echo "    macOS may still list 'Nepali IME' as a stale entry under"
+echo "    macOS may still list 'Nepali – Phonetic' as a stale entry under"
 echo "    System Settings → Keyboard → Text Input → Edit (Input Sources)."
 echo "    Select it and click '−' to fully forget it."

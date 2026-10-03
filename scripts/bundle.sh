@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Build the NepaliIME executable in release mode and assemble it into a .app bundle
-# under dist/NepaliIME.app, then ad-hoc sign it.
+# Build the Sajilo executable in release mode and assemble it into a .app bundle
+# under dist/Sajilo.app, then ad-hoc sign it.
 set -euo pipefail
 
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 cd "$ROOT_DIR"
 
-APP_NAME="NepaliIME"
+APP_NAME="Sajilo"
 DIST_DIR="$ROOT_DIR/dist"
 APP_DIR="$DIST_DIR/$APP_NAME.app"
 CONTENTS="$APP_DIR/Contents"
@@ -45,11 +45,11 @@ chmod +x "$MACOS_DIR/$APP_NAME"
 cp "$ROOT_DIR/BundleResources/Info.plist" "$CONTENTS/Info.plist"
 # Release builds (CI) stamp the version into the bundled copy; the
 # committed Info.plist only carries the base version.
-if [[ -n "${NEPALI_IME_VERSION:-}" ]]; then
-    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $NEPALI_IME_VERSION" "$CONTENTS/Info.plist"
+if [[ -n "${SAJILO_VERSION:-}" ]]; then
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SAJILO_VERSION" "$CONTENTS/Info.plist"
 fi
-if [[ -n "${NEPALI_IME_BUILD:-}" ]]; then
-    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEPALI_IME_BUILD" "$CONTENTS/Info.plist"
+if [[ -n "${SAJILO_BUILD:-}" ]]; then
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $SAJILO_BUILD" "$CONTENTS/Info.plist"
 fi
 cp "$ROOT_DIR/BundleResources/system_dict.tsv" "$RESOURCES_DIR/system_dict.tsv"
 
@@ -63,11 +63,11 @@ if (( DICT_ROWS < 5000 )); then
     echo "       the 150-word starter, not the corpus-built dictionary." >&2
     echo "       Run ./scripts/corpus/run_all.sh first, then re-run bundle.sh." >&2
     echo "       (To bypass deliberately, e.g. for a starter-only build," >&2
-    echo "        re-run with NEPALI_IME_ALLOW_STARTER=1.)" >&2
-    if [[ "${NEPALI_IME_ALLOW_STARTER:-0}" != "1" ]]; then
+    echo "        re-run with SAJILO_ALLOW_STARTER=1.)" >&2
+    if [[ "${SAJILO_ALLOW_STARTER:-0}" != "1" ]]; then
         exit 1
     fi
-    echo "==> NEPALI_IME_ALLOW_STARTER=1 set — proceeding with starter dict" >&2
+    echo "==> SAJILO_ALLOW_STARTER=1 set — proceeding with starter dict" >&2
 fi
 echo "==> Bundled system_dict.tsv ($DICT_ROWS data rows)"
 

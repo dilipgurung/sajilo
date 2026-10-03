@@ -13,18 +13,18 @@ code { background: #f3f3f3; padding: 1px 4px; border-radius: 3px; font-family: u
 </style>
 </head>
 <body>
-<h2>Almost done — enable Nepali IME</h2>
+<h2>Almost done — enable Sajilo</h2>
 <p>macOS doesn't auto-enable input methods for security reasons. To finish setup:</p>
 <ol>
     <li>Open <strong>System Settings</strong> → <strong>Keyboard</strong>.</li>
     <li>Under <strong>Text Input</strong>, click <strong>Edit…</strong> next to Input Sources.</li>
-    <li>Click the <strong>+</strong> button (bottom-left), search "Nepali", select <strong>Nepali IME</strong>, and click Add.</li>
+    <li>Click the <strong>+</strong> button (bottom-left), search "Nepali", select <strong>Nepali – Phonetic</strong>, and click Add.</li>
     <li>Switch to it via the input-source menu in the menu bar (the small flag/globe icon), or press <strong>Control + Space</strong>.</li>
     <li>Open TextEdit and type <code>namaste</code> — you should see नमस्ते as a candidate. Press <strong>Space</strong> to commit.</li>
 </ol>
 <div class="tip"><strong>Reinstalling?</strong> If the icon still shows the old version, remove the input source in System Settings and re-add it — macOS caches the icon aggressively.</div>
 <p>The installer shipped a ~30,000-headword dictionary built from AI4Bharat's Aksharantar dataset and a hand-curated lemma seed.</p>
-<p><strong>To uninstall later:</strong> drag <code>~/Library/Input Methods/NepaliIME.app</code> to the Trash. Optionally also remove <code>~/Library/Application Support/NepaliIME/</code> to clean up the learner database and user dictionary.</p>
-<p>Logs: open <strong>Console.app</strong> and filter on <code>com.gurungdilip.inputmethod.NepaliIME</code>.</p>
+<p><strong>To uninstall later:</strong> drag <code>~/Library/Input Methods/Sajilo.app</code> to the Trash. Optionally also remove <code>~/Library/Application Support/Sajilo/</code> to clean up the learner database and user dictionary.</p>
+<p>Logs: open <strong>Console.app</strong> and filter on <code>com.gurungdilip.inputmethod.Sajilo</code>.</p>
 </body>
 </html>

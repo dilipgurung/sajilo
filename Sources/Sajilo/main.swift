@@ -1,11 +1,11 @@
 import Foundation
 import AppKit
 import InputMethodKit
-import NepaliIMECore
+import SajiloCore
 
 // Force-link the InputController class so NSClassFromString lookup from IMK succeeds.
 _ = NSStringFromClass(InputController.self)
-Log.lifecycle.info("NepaliIME launching")
+Log.lifecycle.info("Sajilo launching")
 
 guard let connectionName = Bundle.main.object(forInfoDictionaryKey: "InputMethodConnectionName") as? String else {
     fatalError("Info.plist missing InputMethodConnectionName")

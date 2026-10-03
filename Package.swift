@@ -2,31 +2,31 @@
 import PackageDescription
 
 let package = Package(
-    name: "NepaliIME",
+    name: "Sajilo",
     platforms: [.macOS(.v14)],
     products: [
-        .executable(name: "NepaliIME", targets: ["NepaliIME"]),
-        .library(name: "NepaliIMECore", targets: ["NepaliIMECore"]),
+        .executable(name: "Sajilo", targets: ["Sajilo"]),
+        .library(name: "SajiloCore", targets: ["SajiloCore"]),
     ],
     dependencies: [
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.0.0"),
     ],
     targets: [
         .executableTarget(
-            name: "NepaliIME",
-            dependencies: ["NepaliIMECore"],
+            name: "Sajilo",
+            dependencies: ["SajiloCore"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(
-            name: "NepaliIMECore",
+            name: "SajiloCore",
             dependencies: [
                 .product(name: "GRDB", package: "GRDB.swift"),
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .testTarget(
-            name: "NepaliIMECoreTests",
-            dependencies: ["NepaliIMECore"],
+            name: "SajiloCoreTests",
+            dependencies: ["SajiloCore"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
     ]

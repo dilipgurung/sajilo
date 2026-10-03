@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 @preconcurrency import InputMethodKit
 
-@objc(NepaliIMEController)
+@objc(SajiloController)
 public final class InputController: IMKInputController, @unchecked Sendable {
     // IMK guarantees calls on the main thread. We bridge via MainActor.assumeIsolated
     // because overrides of unannotated parent methods inherit non-isolation regardless
@@ -99,8 +99,8 @@ public final class InputController: IMKInputController, @unchecked Sendable {
                 return true
             }
             // Devanagari digits: any ASCII 0-9 typed in idle becomes
-            // its Devanagari counterpart ०-९. Always converts when the
-            // Nepali IME is the active input source — to type ASCII
+            // its Devanagari counterpart ०-९. Always converts when
+            // Sajilo is the active input source — to type ASCII
             // digits, switch to ABC momentarily.
             if chars.count == 1,
                let digit = chars.first?.wholeNumberValue, (0...9).contains(digit) {
@@ -405,11 +405,11 @@ public final class InputController: IMKInputController, @unchecked Sendable {
 
     @MainActor
     private func buildMenu() -> NSMenu {
-        let menu = NSMenu(title: "Nepali IME")
+        let menu = NSMenu(title: "Sajilo")
         // Informational header (no action, so AppKit shows it disabled).
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
         let about = NSMenuItem(
-            title: version.map { "Nepali IME \($0)" } ?? "Nepali IME",
+            title: version.map { "Sajilo \($0)" } ?? "Sajilo",
             action: nil,
             keyEquivalent: ""
         )

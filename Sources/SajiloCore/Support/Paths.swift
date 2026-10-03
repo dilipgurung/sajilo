@@ -1,7 +1,7 @@
 import Foundation
 
 public enum Paths {
-    public static let appName = "NepaliIME"
+    public static let appName = "Sajilo"
 
     // Created once on first access rather than on every property read.
     public static let applicationSupportDirectory: URL = {

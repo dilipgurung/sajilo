@@ -1,9 +1,11 @@
-# AGENTS.md — NepaliIME developer & coding-agent guide
+# AGENTS.md — Sajilo developer & coding-agent guide
 
-NepaliIME is a macOS InputMethodKit IME that converts Roman input into Nepali
-(Devanagari). You type `namaste`, the candidate window shows `नमस्ते`, and
-Space commits it. The IME learns from selections and reorders future
-candidates by frequency + recency. End-user docs live in `README.md`; this
+Sajilo (सजिलो, "easy") is a macOS InputMethodKit IME that converts Roman
+input into Nepali (Devanagari). Users add it in System Settings as the
+"Nepali – Phonetic" input source. Product vocabulary lives in `CONTEXT.md`.
+You type `namaste`, the candidate window shows `नमस्ते`, and Space commits
+it. The IME learns from selections and reorders future candidates by
+frequency + recency. End-user docs live in `README.md`; this
 file holds everything technical.
 
 ## Contents
@@ -24,15 +26,15 @@ Requirements: macOS 14+, Xcode 16+ / Swift 6.0+ toolchain (verified against
 Swift 6.3.1). Builds are ad-hoc signed, not notarized.
 
 ```
-Sources/NepaliIME/         # Thin executable: IMKServer bootstrap
-Sources/NepaliIMECore/     # Library: all logic, unit-testable
+Sources/Sajilo/            # Thin executable: IMKServer bootstrap
+Sources/SajiloCore/        # Library: all logic, unit-testable
 ├── Engine/                # Trie + Ranker + SuggestionEngine actor
 │                          # + RuleTransliterator + RuleDictionarySource
 ├── Persistence/           # DictionaryManager, UserLearner (GRDB), Watcher
 ├── Controller/            # IMKInputController, state machine, key router
 ├── UI/                    # NSPanel + SwiftUI candidate window
 └── Support/               # Logger, Paths
-Tests/NepaliIMECoreTests/  # XCTest suite
+Tests/SajiloCoreTests/     # XCTest suite
 BundleResources/           # Info.plist, system_dict.tsv, icons, lproj strings
 ├── Info.plist             #   InputMethodKit keys + ComponentInputModeDict
 ├── system_dict.tsv        #   bundled dictionary (~30k headwords, generated)
@@ -80,8 +82,8 @@ Key design choices:
 ```bash
 swift test                          # run the unit-test suite
 ./scripts/install.sh                # build, bundle, install to ~/Library/Input Methods/, restart input agents
-./scripts/bundle.sh                 # bundle only → dist/NepaliIME.app
-./scripts/make_pkg.sh               # → dist/NepaliIME.pkg (unsigned)
+./scripts/bundle.sh                 # bundle only → dist/Sajilo.app
+./scripts/make_pkg.sh               # → dist/Sajilo.pkg (unsigned)
 ./scripts/uninstall.sh              # interactive — asks before deleting user data
 ./scripts/uninstall.sh --keep-data  # remove the .app, preserve user dict + learner DB
 ./scripts/uninstall.sh --all        # remove everything without prompting
@@ -90,23 +92,23 @@ swift test                          # run the unit-test suite
 Notes:
 
 - `bundle.sh` builds a **universal binary (arm64 + x86_64)**.
-- `install.sh` and the `.pkg` postinstall **kill the running NepaliIME
+- `install.sh` and the `.pkg` postinstall **kill the running Sajilo
   process** so the freshly installed binary is picked up. The postinstall
   also pokes `TextInputMenuAgent` so macOS rescans input sources.
 - After the first install, enable the input source: System Settings →
-  Keyboard → Text Input → Edit → + → "Nepali" → Nepali IME.
+  Keyboard → Text Input → Edit → + → "Nepali" → Nepali – Phonetic.
 - `bundle.sh` (which `make_pkg.sh` invokes) **refuses to ship a bundle whose
   `system_dict.tsv` has < 5,000 data rows** (i.e. looks like a starter dict).
-  Set `NEPALI_IME_ALLOW_STARTER=1` to deliberately build a starter-only
+  Set `SAJILO_ALLOW_STARTER=1` to deliberately build a starter-only
   bundle for testing.
 - The `.pkg` stages the .app under `Library/Input Methods/` and wraps it
   with `pkgbuild` + `productbuild`; UI screens come from
   `scripts/pkg_resources/`. Output is per-user only (no sudo). It is
   unsigned (see [Known limitations](#known-limitations)).
-- `uninstall.sh` removes `~/Library/Input Methods/NepaliIME.app`, kills any
+- `uninstall.sh` removes `~/Library/Input Methods/Sajilo.app`, kills any
   running instance, restarts the input agents, and (with confirmation)
-  wipes `~/Library/Application Support/NepaliIME/` (`user_dict.tsv`,
-  `learner.sqlite`). The stale "Nepali IME" entry in System
+  wipes `~/Library/Application Support/Sajilo/` (`user_dict.tsv`,
+  `learner.sqlite`). The stale "Nepali – Phonetic" entry in System
   Settings → Input Sources must then be removed manually with `−`.
 - The packaged `.app` includes `system_dict.tsv` (corpus-built, seed already
   merged in with boosted frequencies) and a copy of
@@ -117,14 +119,14 @@ Canonical sequence for a redistributable package with a refreshed dictionary:
 
 ```bash
 ./scripts/corpus/run_all.sh   # rebuild the ~30k dictionary into BundleResources/
-./scripts/make_pkg.sh         # → dist/NepaliIME.pkg
+./scripts/make_pkg.sh         # → dist/Sajilo.pkg
 ```
 
 ### Releases
 
 Every merge to `main` publishes a GitHub release: the `release` job in
 `.github/workflows/ci.yml` runs after `test` passes and attaches
-`NepaliIME-<version>.pkg`, `NepaliIME-<version>.app.zip` and
+`Sajilo-<version>.pkg`, `Sajilo-<version>.app.zip` and
 `SHA256SUMS.txt`, with notes generated from the merged PRs.
 
 - **Version:** `scripts/next_version.sh` takes `CFBundleShortVersionString`
@@ -133,7 +135,7 @@ Every merge to `main` publishes a GitHub release: the `release` job in
   `0.1.0`, `0.1.1`, `0.1.2`, …; to start `0.2.x` or `1.0.x`, change the
   version in `Info.plist` in a PR.
 - CI stamps the version into the bundled `Info.plist` and the `.pkg` via
-  `NEPALI_IME_VERSION` (and `CFBundleVersion` via `NEPALI_IME_BUILD`, the
+  `SAJILO_VERSION` (and `CFBundleVersion` via `SAJILO_BUILD`, the
   workflow run number); the committed `Info.plist` keeps only the base.
 - **Docs-only merges don't release.** `scripts/should_release.sh` compares
   HEAD with the last release tag. If only `README.md` (at any level),
@@ -145,7 +147,7 @@ Every merge to `main` publishes a GitHub release: the `release` job in
 ## Debugging
 
 Open Console.app and filter by subsystem
-`com.gurungdilip.inputmethod.NepaliIME`. Categories: `controller`, `engine`,
+`com.gurungdilip.inputmethod.Sajilo`. Categories: `controller`, `engine`,
 `learner`, `panel`, `dict`, `lifecycle`. You generally cannot attach a
 debugger to an IME process — the system spawns it — so `os_log` is the
 primary diagnostic channel.
@@ -189,7 +191,7 @@ With Caps Lock on:
 
 macOS also has a "Use Caps Lock to switch to and from ABC" setting. When it
 is on, Caps Lock is expected to switch input sources instead (not yet
-verified with NepaliIME).
+verified with Sajilo).
 
 Code: `KeyEventRouter.isEnglishMode` and the idle branch of
 `InputController.handleOnMain`.
@@ -217,7 +219,7 @@ literally.
 
 ### Devanagari digits
 
-While the Nepali IME is the active input source, ASCII digits typed in idle
+While Sajilo is the active input source, ASCII digits typed in idle
 become `०१२३४५६७८९`. For ASCII digits, turn on Caps Lock (English mode).
 
 - `123` → `१२३`
@@ -364,7 +366,7 @@ This file is **generated** by the corpus pipeline — do not hand-edit it.
 
 ### User dictionary (live-editable)
 
-`~/Library/Application Support/NepaliIME/user_dict.tsv`, same format. Edits
+`~/Library/Application Support/Sajilo/user_dict.tsv`, same format. Edits
 are picked up automatically by a `DispatchSource` file watcher (no restart).
 When the frequency column is omitted the default is **200,000**, above any
 system entry, so user entries outrank system suggestions. Open it from the
@@ -380,7 +382,7 @@ Ways to add a word the IME doesn't know:
 
 ### Learned selections
 
-SQLite at `~/Library/Application Support/NepaliIME/learner.sqlite`. Schema:
+SQLite at `~/Library/Application Support/Sajilo/learner.sqlite`. Schema:
 `(input, normalized_input, output, frequency, last_used, source)` per unique
 pair; each commit increments `frequency` and refreshes `last_used`. To reset
 learning, delete the file.

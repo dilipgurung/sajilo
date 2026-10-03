@@ -1,5 +1,5 @@
 import XCTest
-@testable import NepaliIMECore
+@testable import SajiloCore
 
 final class UserLearnerTests: XCTestCase {
     func testRecordAndQueryBoost() async throws {

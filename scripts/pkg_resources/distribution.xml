@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <installer-gui-script minSpecVersion="2">
-    <title>Nepali IME</title>
+    <title>Sajilo</title>
     <organization>com.gurungdilip.inputmethod</organization>
     <options
         customize="never"
@@ -16,12 +16,12 @@
     <conclusion file="conclusion.html"/>
     <choices-outline>
         <line choice="default">
-            <line choice="com.gurungdilip.inputmethod.NepaliIME.pkg"/>
+            <line choice="com.gurungdilip.inputmethod.Sajilo.pkg"/>
         </line>
     </choices-outline>
-    <choice id="default" title="Nepali IME"/>
-    <choice id="com.gurungdilip.inputmethod.NepaliIME.pkg" visible="false">
-        <pkg-ref id="com.gurungdilip.inputmethod.NepaliIME.pkg"/>
+    <choice id="default" title="Sajilo"/>
+    <choice id="com.gurungdilip.inputmethod.Sajilo.pkg" visible="false">
+        <pkg-ref id="com.gurungdilip.inputmethod.Sajilo.pkg"/>
     </choice>
-    <pkg-ref id="com.gurungdilip.inputmethod.NepaliIME.pkg" version="__VERSION__" auth="none">component.pkg</pkg-ref>
+    <pkg-ref id="com.gurungdilip.inputmethod.Sajilo.pkg" version="__VERSION__" auth="none">component.pkg</pkg-ref>
 </installer-gui-script>

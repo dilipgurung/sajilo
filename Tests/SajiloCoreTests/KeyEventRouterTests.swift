@@ -1,6 +1,6 @@
 import XCTest
 import AppKit
-@testable import NepaliIMECore
+@testable import SajiloCore
 
 final class KeyEventRouterTests: XCTestCase {
     func testLatinLetterAppends() {

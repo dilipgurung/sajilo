@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Build a per-user .pkg installer for the Nepali IME.
+# Build a per-user .pkg installer for Sajilo.
 #
-# Output: dist/NepaliIME.pkg
-# Install location: ~/Library/Input Methods/NepaliIME.app  (no admin password)
+# Output: dist/Sajilo.pkg
+# Install location: ~/Library/Input Methods/Sajilo.app  (no admin password)
 #
 # This is a Tier-1 (ad-hoc / unsigned) build — recipients on macOS 10.15+
 # will need to right-click the .pkg → Open the first time, since
@@ -15,7 +15,7 @@ set -euo pipefail
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 cd "$ROOT_DIR"
 
-APP_NAME="NepaliIME"
+APP_NAME="Sajilo"
 DIST_DIR="$ROOT_DIR/dist"
 APP_DIR="$DIST_DIR/$APP_NAME.app"
 STAGING="$DIST_DIR/pkg-staging"
@@ -23,9 +23,9 @@ COMPONENT_PKG="$DIST_DIR/component.pkg"
 FINAL_PKG="$DIST_DIR/$APP_NAME.pkg"
 
 # Read version from Info.plist so the pkg version tracks the bundle.
-# NEPALI_IME_VERSION (set by the release workflow) overrides it; bundle.sh
+# SAJILO_VERSION (set by the release workflow) overrides it; bundle.sh
 # stamps the same value into the app.
-VERSION="${NEPALI_IME_VERSION:-$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" \
+VERSION="${SAJILO_VERSION:-$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" \
     "$ROOT_DIR/BundleResources/Info.plist" 2>/dev/null || echo "0.1.0")}"
 
 echo "==> Building app bundle (delegates to bundle.sh)"
@@ -41,7 +41,7 @@ COMPONENT_PLIST="$DIST_DIR/component.plist"
 rm -rf "$STAGING" "$COMPONENT_PKG" "$FINAL_PKG" "$COMPONENT_PLIST" "$DIST_DIR/distribution.xml"
 # Mirror the destination tree relative to / so pkgbuild's
 # --install-location=/ + the distribution.xml's
-# enable_currentUserHome=true gives us ~/Library/Input Methods/NepaliIME.app.
+# enable_currentUserHome=true gives us ~/Library/Input Methods/Sajilo.app.
 mkdir -p "$STAGING/Library/Input Methods"
 cp -R "$APP_DIR" "$STAGING/Library/Input Methods/"
 
@@ -50,7 +50,7 @@ cp -R "$APP_DIR" "$STAGING/Library/Input Methods/"
 # any CFBundle in the payload). Combined with enable_currentUserHome,
 # Installer ends up either prompting for a relocation target or
 # silently skipping the copy into ~/Library/Input Methods/. We want
-# the path locked: it MUST land at ~/Library/Input Methods/NepaliIME.app.
+# the path locked: it MUST land at ~/Library/Input Methods/Sajilo.app.
 echo "==> Generating component plist (BundleIsRelocatable=NO)"
 pkgbuild --analyze --root "$STAGING" "$COMPONENT_PLIST" >/dev/null
 /usr/libexec/PlistBuddy -c "Set :0:BundleIsRelocatable false" "$COMPONENT_PLIST"
@@ -60,7 +60,7 @@ pkgbuild \
     --root "$STAGING" \
     --component-plist "$COMPONENT_PLIST" \
     --install-location "/" \
-    --identifier "com.gurungdilip.inputmethod.NepaliIME.pkg" \
+    --identifier "com.gurungdilip.inputmethod.Sajilo.pkg" \
     --version "$VERSION" \
     --scripts "$ROOT_DIR/scripts/pkg_resources/scripts" \
     "$COMPONENT_PKG"

@@ -2,7 +2,7 @@ import Foundation
 import os
 
 public enum Log {
-    private static let subsystem = "com.gurungdilip.inputmethod.NepaliIME"
+    private static let subsystem = "com.gurungdilip.inputmethod.Sajilo"
 
     public static let controller = Logger(subsystem: subsystem, category: "controller")
     public static let engine = Logger(subsystem: subsystem, category: "engine")

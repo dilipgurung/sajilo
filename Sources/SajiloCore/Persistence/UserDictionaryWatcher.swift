@@ -6,7 +6,7 @@ public final class UserDictionaryWatcher: @unchecked Sendable {
     private let url: URL
     private let onChange: @Sendable () -> Void
     private let debounce: DispatchTimeInterval
-    private let queue = DispatchQueue(label: "NepaliIME.UserDictionaryWatcher")
+    private let queue = DispatchQueue(label: "Sajilo.UserDictionaryWatcher")
     private var source: DispatchSourceFileSystemObject?
     private var pendingChange: DispatchWorkItem?
 

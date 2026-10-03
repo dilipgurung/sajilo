@@ -1,5 +1,5 @@
 import XCTest
-@testable import NepaliIMECore
+@testable import SajiloCore
 
 final class DictionaryManagerTests: XCTestCase {
     private var tmpDir: URL!

@@ -1,6 +1,6 @@
 import XCTest
 import AppKit
-@testable import NepaliIMECore
+@testable import SajiloCore
 
 final class PanelPositionerTests: XCTestCase {
     private let screen = NSScreen.dummy(frame: NSRect(x: 0, y: 0, width: 1440, height: 900))

@@ -1,5 +1,5 @@
 import XCTest
-@testable import NepaliIMECore
+@testable import SajiloCore
 
 final class RankerTests: XCTestCase {
     private let now = Date(timeIntervalSince1970: 1_700_000_000)

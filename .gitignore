@@ -8,7 +8,7 @@ build/
 DerivedData/
 *.o
 *.dylib
-NepaliIME.app/
+Sajilo.app/
 dist/
 
 # Corpus pipeline (scripts/corpus/) — large intermediates, regenerable

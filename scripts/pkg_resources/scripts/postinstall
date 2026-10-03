@@ -5,7 +5,7 @@
 # component payload has been copied into place by Installer.app.
 set -e
 
-INSTALLED_PATH="$HOME/Library/Input Methods/NepaliIME.app"
+INSTALLED_PATH="$HOME/Library/Input Methods/Sajilo.app"
 if [[ ! -d "$INSTALLED_PATH" ]]; then
     echo "postinstall: $INSTALLED_PATH not found; nothing to register" >&2
     # Don't fail the install — pkgbuild's payload copy is the
@@ -16,7 +16,7 @@ fi
 
 # Stop the previously-installed instance, if any, so the new binary is
 # used on next activation instead of the old one lingering until logout.
-pkill -f "Input Methods/NepaliIME.app" >/dev/null 2>&1 || true
+pkill -f "Input Methods/Sajilo.app" >/dev/null 2>&1 || true
 
 # Re-register input sources. These daemons cache the input-method
 # list; killing them forces a rescan. They auto-respawn.

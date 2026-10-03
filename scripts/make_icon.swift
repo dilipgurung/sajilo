@@ -1,5 +1,5 @@
 #!/usr/bin/env swift
-// Generates the menu-bar and palette icons for NepaliIME.
+// Generates the menu-bar and palette icons for Sajilo.
 //
 //   swift scripts/make_icon.swift
 //

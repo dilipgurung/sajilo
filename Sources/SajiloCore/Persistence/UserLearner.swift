@@ -6,7 +6,7 @@ public actor UserLearner: LearnerSource {
 
     public init(databaseURL: URL) throws {
         var config = Configuration()
-        config.label = "NepaliIME.UserLearner"
+        config.label = "Sajilo.UserLearner"
         self.dbQueue = try DatabaseQueue(path: databaseURL.path, configuration: config)
         try Self.migrator.migrate(dbQueue)
     }
@@ -14,7 +14,7 @@ public actor UserLearner: LearnerSource {
     public init(inMemory: Bool) throws {
         precondition(inMemory)
         var config = Configuration()
-        config.label = "NepaliIME.UserLearner.memory"
+        config.label = "Sajilo.UserLearner.memory"
         self.dbQueue = try DatabaseQueue(configuration: config)
         try Self.migrator.migrate(dbQueue)
     }
