@@ -28,7 +28,7 @@ TEMPLATE = "index.template.html"
 REPO = os.environ.get("GITHUB_REPOSITORY", "dilipgurung/sajilo")
 REPO_URL = f"https://github.com/{REPO}"
 
-SKIPPED_SECTIONS = {"Building from source / contributing", "License"}
+SKIPPED_SECTIONS = {"Building from source / contributing", "Credits", "License"}
 REQUIRED_SECTIONS = {"Install"}
 
 

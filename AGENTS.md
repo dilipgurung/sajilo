@@ -473,8 +473,8 @@ the site's inputs build it without deploying; merges to `main` deploy.
 
 - **The README is the content.** Its tagline and intro (between `# Sajilo` and
   the first `##`) become the hero; every `##` section except "Building from
-  source / contributing" and "License" becomes a page section, in order. The
-  build fails if the intro or `## Install` is missing. Relative links are
+  source / contributing", "Credits" and "License" becomes a page section, in
+  order. The build fails if the intro or `## Install` is missing. Relative links are
   rewritten to GitHub URLs; section ids match GitHub's anchors.
 - `site/index.template.html` holds the hand-written parts: download button,
   unsigned-installer note, the three-line "what it does" strip and the hero
