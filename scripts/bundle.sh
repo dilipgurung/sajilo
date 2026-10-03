@@ -84,6 +84,9 @@ if [[ -f "$ROOT_DIR/scripts/corpus/lemma_seed.tsv" ]]; then
     echo "==> Bundled lemma_seed.tsv ($SEED_ROWS data rows)"
 fi
 
+# Licenses of what we link and the data the dictionary is built from.
+cp "$ROOT_DIR/THIRD_PARTY_NOTICES.md" "$RESOURCES_DIR/THIRD_PARTY_NOTICES.md"
+
 if [[ -f "$ROOT_DIR/BundleResources/MenuIcon.icns" ]]; then
     cp "$ROOT_DIR/BundleResources/MenuIcon.icns" "$RESOURCES_DIR/MenuIcon.icns"
 fi
