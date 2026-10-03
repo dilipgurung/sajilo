@@ -127,7 +127,7 @@ Save the file and it reloads immediately — no restart needed.
 2. Optionally, delete `~/Library/Application Support/Sajilo/` to remove your
    user dictionary and learned data.
 3. Remove the stale input source: **System Settings → Keyboard → Text Input →
-   Edit** → select **Nepali – Phonetic** → **−**.
+   Edit** → select **Nepali – Phonetic** → click **−**.
 
 ## Building from source / contributing
 
