@@ -54,8 +54,11 @@ Vowels (after a consonant they become the matching vowel sign):
 |---|---|---|---|---|---|---|---|---|---|
 | अ | आ | इ | ई | उ | ऊ | ए | ऐ | ओ | औ |
 
-A single `a` at the end of a word is the inherent vowel. Type `aa` for ा:
-`chhoraa` → छोरा, `Tikaa` → टिका.
+A single `a` at the end of a word is the inherent vowel. Type `aa` for ा.
+For example,
+
+- `chhoraa` → छोरा
+- `Tikaa` → टिका
 
 Consonants mostly follow the English sound (`k` → क, `b` → ब, `m` → म). The
 less obvious ones:
@@ -64,8 +67,13 @@ less obvious ones:
 |---|---|---|---|---|---|---|---|---|
 | च | छ | श | फ | व | क्ष | ज्ञ | श्र | क्स |
 
-Add `h` for the aspirated form: `kh` → ख, `gh` → घ, `jh` → झ, `bh` → भ
-(`th` and `dh` are in the table below).
+Add `h` for the aspirated form (`th` and `dh` are in the table below).
+For example,
+
+- `kh` → ख
+- `gh` → घ
+- `jh` → झ
+- `bh` → भ
 
 **Capitals give the retroflex letters (ट-row). Lowercase gives the dental
 ones (त-row).** Each pair differs only by Shift:
@@ -80,12 +88,17 @@ ones (त-row).** Each pair differs only by Shift:
 | `s` | स | `S` | ष |
 | `sh` | श | `Sh` | ष |
 
-For example, `daal` → दाल (lentils) but `Daal` → डाल (branch). Likewise
-`Thulo` → ठुलो, `gaNesh` → गणेश and `riShi` → ऋषि. A capital also offers
-the lowercase reading as an alternative, so a word you capitalize by
-accident still shows up. Use Shift for these capitals: with Caps Lock on,
-the IME types English instead (see Basic keys). The other capitals (`K`, `M`, `P`, …) are the same
-as lowercase.
+For example,
+
+- `daal` → दाल (lentils) but `Daal` → डाल (branch)
+- `Thulo` → ठुलो
+- `gaNesh` → गणेश
+- `riShi` → ऋषि
+
+A capital also offers the lowercase reading as an alternative, so a word you
+capitalize by accident still shows up. Use Shift for these capitals: with Caps
+Lock on, the IME types English instead (see Basic keys). The other capitals
+(`K`, `M`, `P`, …) are the same as lowercase.
 
 Special keys, typed as part of the word:
 
@@ -127,7 +140,7 @@ Save the file and it reloads immediately — no restart needed.
 2. Optionally, delete `~/Library/Application Support/Sajilo/` to remove your
    user dictionary and learned data.
 3. Remove the stale input source: **System Settings → Keyboard → Text Input →
-   Edit** → select **Nepali – Phonetic** → **−**.
+   Edit** → select **Nepali – Phonetic** → click **−**.
 
 ## Building from source / contributing
 

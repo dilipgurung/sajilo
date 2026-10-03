@@ -1,6 +1,6 @@
 /* Hallmark · route: custom (tuned) · vibe: "Nepal-flag crimson, warm paper, reference manual"
- * paper: oklch(97% 0.008 20) · accent: oklch(53% 0.20 20) · display: Eczar · body: Mukta · mono: JetBrains Mono
- * axes: light / roman-serif / warm
+ * paper: oklch(97% 0.008 20) · accent: oklch(53% 0.20 20) · display: Bricolage Grotesque (Deva: Anek Devanagari) · body: DM Sans (Deva: Mukta) · mono: JetBrains Mono
+ * axes: light / grotesk-sans / warm
  */
 :root {
   /* Colour */
@@ -20,8 +20,8 @@
   --color-shadow: oklch(22% 0.03 262 / 0.12);
 
   /* Type */
-  --font-display: "Eczar", "Noto Serif Devanagari", serif;
-  --font-body: "Mukta", "Noto Sans Devanagari", sans-serif;
+  --font-display: "Bricolage Grotesque", "Anek Devanagari", "Noto Sans Devanagari", sans-serif;
+  --font-body: "DM Sans", "Mukta", "Noto Sans Devanagari", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --text-xs: 0.8125rem;
