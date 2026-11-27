@@ -120,10 +120,14 @@ pre code { background: none; border: 0; padding: 0; font-size: inherit; white-sp
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
+  gap: var(--space-2xs);
   min-height: 44px;
+  padding-inline: 10px;
   margin-right: -10px; /* optical: align the glyph, not its hit area, with the gutter */
-  border-radius: 50%;
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 /* ── Hero ─────────────────────────────────────────── */
