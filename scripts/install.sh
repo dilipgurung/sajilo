@@ -32,7 +32,7 @@ pkill -f "Input Methods/$APP_NAME.app" 2>/dev/null || true
 echo "==> Re-registering input sources..."
 killall "TextInputMenuAgent" 2>/dev/null || true
 killall "ControlCenter" 2>/dev/null || true
-killall "TextInputSwitcher" 2>/dev/null || true
+killall -KILL "TextInputSwitcher" 2>/dev/null || true
 
 cat <<'EOF'
 
