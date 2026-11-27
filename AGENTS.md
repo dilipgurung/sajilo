@@ -139,8 +139,13 @@ Every merge to `main` publishes a GitHub release: the `release` job in
   `0.1.0`, `0.1.1`, `0.1.2`, …; to start `0.2.x` or `1.0.x`, change the
   version in `Info.plist` in a PR.
 - Each release also carries the `.pkg` under the fixed name `Sajilo.pkg`, so
-  `releases/latest/download/Sajilo.pkg` (the README and website download
-  link) always resolves to the newest version.
+  `releases/latest/download/Sajilo.pkg` (the README's download link)
+  always resolves to the newest version. The website links to the versioned
+  `Sajilo-X.Y.Z.pkg` instead, so the downloaded file names its version; the
+  release job redeploys the site (`gh workflow run pages.yml`) after each
+  release to update that link.
+- The installer window title (`distribution.xml`) and the first line of the
+  input menu show the version.
 - CI stamps the version into the bundled `Info.plist` and the `.pkg` via
   `SAJILO_VERSION` (and `CFBundleVersion` via `SAJILO_BUILD`, the
   workflow run number); the committed `Info.plist` keeps only the base.
@@ -476,6 +481,10 @@ the site's inputs build it without deploying; merges to `main` deploy.
   source / contributing", "Credits" and "License" becomes a page section, in
   order. The build fails if the intro or `## Install` is missing. Relative links are
   rewritten to GitHub URLs; section ids match GitHub's anchors.
+- The download button links to the latest release's `Sajilo-X.Y.Z.pkg`,
+  which `build_site.py` looks up through the GitHub API (using `GH_TOKEN`
+  when set). If the lookup fails, as when offline, it warns and links to
+  the unversioned `releases/latest/download/Sajilo.pkg` instead.
 - `site/index.template.html` holds the hand-written parts: download button,
   unsigned-installer note, the three-line "what it does" strip and the hero
   demo. `site/demo.js` replays typing `namaste` and `sajilo`; its candidate

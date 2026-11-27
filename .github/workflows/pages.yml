@@ -2,7 +2,9 @@ name: Website
 
 # Builds the landing page from site/ + README.md (scripts/build_site.py).
 # PRs only build it, so a README change that breaks the page fails review;
-# main deploys it to GitHub Pages.
+# main deploys it to GitHub Pages. The download button links to the latest
+# release's versioned .pkg, so ci.yml's release job runs this workflow
+# (workflow_dispatch) after each release.
 on:
   push:
     branches: [main]
@@ -34,6 +36,8 @@ jobs:
         with:
           python-version: "3.13"
       - name: Build site
+        env:
+          GH_TOKEN: ${{ github.token }} # latest-release lookup
         run: |
           pip install -r scripts/site_requirements.txt
           python scripts/build_site.py

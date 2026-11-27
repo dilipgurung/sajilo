@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <installer-gui-script minSpecVersion="2">
-    <title>Sajilo</title>
+    <title>Sajilo __VERSION__</title>
     <organization>com.gurungdilip.inputmethod</organization>
     <options
         customize="never"

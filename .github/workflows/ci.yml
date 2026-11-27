@@ -27,6 +27,7 @@ jobs:
     runs-on: macos-15
     permissions:
       contents: write
+      actions: write # dispatch the website rebuild
     # Queue releases instead of racing: two quick merges must not compute
     # the same next version.
     concurrency:
@@ -86,3 +87,10 @@ jobs:
             dist/Sajilo.pkg \
             "dist/Sajilo-$version.app.zip" \
             dist/SHA256SUMS.txt
+
+      # Releases made with the workflow token don't trigger other workflows,
+      # so redeploy the website here: its download button links to the
+      # newest versioned .pkg.
+      - name: Update website download link
+        if: steps.version.outputs.skip != 'true'
+        run: gh workflow run pages.yml --ref main
