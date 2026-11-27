@@ -2,7 +2,7 @@
 
 Sajilo (सजिलो, "easy") is a macOS InputMethodKit IME that converts Roman
 input into Nepali (Devanagari). Users add it in System Settings as the
-"Nepali – Phonetic" input source. Product vocabulary lives in `CONTEXT.md`.
+"सजिलो" (Sajilo) input source. Product vocabulary lives in `CONTEXT.md`.
 You type `namaste`, the candidate window shows `नमस्ते`, and Space commits
 it. The IME learns from selections and reorders future candidates by
 frequency + recency. End-user docs live in `README.md`; this
@@ -100,7 +100,7 @@ Notes:
   process** so the freshly installed binary is picked up. The postinstall
   also pokes `TextInputMenuAgent` so macOS rescans input sources.
 - After the first install, enable the input source: System Settings →
-  Keyboard → Text Input → Edit → + → "Nepali" → Nepali – Phonetic.
+  Keyboard → Text Input → Edit → + → "Nepali" → सजिलो.
 - `bundle.sh` (which `make_pkg.sh` invokes) **refuses to ship a bundle whose
   `system_dict.tsv` has < 5,000 data rows** (i.e. looks like a starter dict).
   Set `SAJILO_ALLOW_STARTER=1` to deliberately build a starter-only
@@ -112,7 +112,7 @@ Notes:
 - `uninstall.sh` removes `~/Library/Input Methods/Sajilo.app`, kills any
   running instance, restarts the input agents, and (with confirmation)
   wipes `~/Library/Application Support/Sajilo/` (`user_dict.tsv`,
-  `learner.sqlite`). The stale "Nepali – Phonetic" entry in System
+  `learner.sqlite`). The stale "सजिलो" entry in System
   Settings → Input Sources must then be removed manually with `−`.
 - The packaged `.app` includes `system_dict.tsv` (corpus-built, seed already
   merged in with boosted frequencies) and a copy of

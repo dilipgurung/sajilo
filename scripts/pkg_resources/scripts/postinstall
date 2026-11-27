@@ -20,8 +20,10 @@ pkill -f "Input Methods/Sajilo.app" >/dev/null 2>&1 || true
 
 # Re-register input sources. These daemons cache the input-method
 # list; killing them forces a rescan. They auto-respawn.
+# TextInputSwitcher (the Ctrl+Space switcher) ignores SIGTERM, so it
+# needs SIGKILL.
 killall "TextInputMenuAgent"  >/dev/null 2>&1 || true
-killall "TextInputSwitcher"   >/dev/null 2>&1 || true
+killall -KILL "TextInputSwitcher" >/dev/null 2>&1 || true
 killall "ControlCenter"       >/dev/null 2>&1 || true
 
 exit 0

@@ -65,11 +65,11 @@ fi
 
 echo "==> Re-registering input sources..."
 killall "TextInputMenuAgent" >/dev/null 2>&1 || true
-killall "TextInputSwitcher" >/dev/null 2>&1 || true
+killall -KILL "TextInputSwitcher" >/dev/null 2>&1 || true
 killall "ControlCenter"     >/dev/null 2>&1 || true
 
 echo
 echo "==> Done."
-echo "    macOS may still list 'Nepali – Phonetic' as a stale entry under"
+echo "    macOS may still list 'सजिलो' (Sajilo) as a stale entry under"
 echo "    System Settings → Keyboard → Text Input → Edit (Input Sources)."
 echo "    Select it and click '−' to fully forget it."
