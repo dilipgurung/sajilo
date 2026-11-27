@@ -12,10 +12,12 @@ button, demo, layout) lives in site/.
 from __future__ import annotations
 
 import html
+import json
 import os
 import re
 import shutil
 import sys
+import urllib.request
 from pathlib import Path
 
 import markdown
@@ -35,6 +37,38 @@ REQUIRED_SECTIONS = {"Install"}
 def fail(msg: str) -> None:
     print(f"build_site: {msg}", file=sys.stderr)
     sys.exit(1)
+
+
+def latest_download() -> tuple[str, str]:
+    """(download URL, version label) for the newest release's versioned .pkg.
+
+    A link to the versioned asset saves as Sajilo-X.Y.Z.pkg, so users can see
+    what they downloaded. If GitHub can't be reached (offline preview) or the
+    release lacks that asset, fall back to the fixed-name latest/download link.
+    """
+    fallback = (f"{REPO_URL}/releases/latest/download/Sajilo.pkg", "")
+    request = urllib.request.Request(
+        f"https://api.github.com/repos/{REPO}/releases/latest",
+        headers={"Accept": "application/vnd.github+json"},
+    )
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    if token:
+        request.add_header("Authorization", f"Bearer {token}")
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            release = json.load(response)
+    except (OSError, ValueError) as err:
+        print(f"build_site: warning: latest release lookup failed ({err}); "
+              "using the unversioned download link", file=sys.stderr)
+        return fallback
+    tag = release.get("tag_name", "")
+    version = tag.removeprefix("v")
+    asset = f"Sajilo-{version}.pkg"
+    if not version or asset not in {a.get("name") for a in release.get("assets", [])}:
+        print(f"build_site: warning: release {tag!r} has no {asset}; "
+              "using the unversioned download link", file=sys.stderr)
+        return fallback
+    return f"{REPO_URL}/releases/download/{tag}/{asset}", f"v{version}"
 
 
 def github_slug(heading: str) -> str:
@@ -98,6 +132,8 @@ def main() -> None:
         for h, b in kept
     )
 
+    download_url, version = latest_download()
+
     page = (SITE_SRC / TEMPLATE).read_text(encoding="utf-8")
     for key, value in {
         "headline": render(headline).removeprefix("<p>").removesuffix("</p>"),
@@ -105,6 +141,8 @@ def main() -> None:
         "toc": toc,
         "sections": body,
         "repo_url": REPO_URL,
+        "download_url": html.escape(download_url),
+        "download_version": f"{html.escape(version)} · " if version else "",
     }.items():
         token = "{{" + key + "}}"
         if token not in page:
@@ -115,7 +153,8 @@ def main() -> None:
         shutil.rmtree(OUT)
     shutil.copytree(SITE_SRC, OUT, ignore=shutil.ignore_patterns(TEMPLATE, ".DS_Store"))
     (OUT / "index.html").write_text(page, encoding="utf-8")
-    print(f"build_site: wrote {OUT.relative_to(ROOT)}/ ({len(kept)} sections)")
+    print(f"build_site: wrote {OUT.relative_to(ROOT)}/ ({len(kept)} sections, "
+          f"download {version or 'unversioned'})")
 
 
 if __name__ == "__main__":
