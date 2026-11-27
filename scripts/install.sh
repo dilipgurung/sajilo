@@ -39,7 +39,7 @@ cat <<'EOF'
 ==> Install complete.
     Next steps:
       1. Open System Settings → Keyboard → Text Input → Edit (Input Sources)
-      2. Click "+" and search "Nepali" — pick "Sajilo"
+      2. Click "+" and search "Nepali" — pick "सजिलो" (Sajilo)
       3. Add it; switch via the input-source menu (Control+Space or the menu-bar globe)
       4. Logs: open Console.app and filter by subsystem "com.gurungdilip.inputmethod.Sajilo"
 
