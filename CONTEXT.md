@@ -15,8 +15,13 @@ _Avoid_: NepaliIME, Nepali IME, Nepali Input Tools
 
 **Input source**:
 The entry a user adds in System Settings and then picks from the menu bar or
-the Ctrl+Space switcher. Sajilo's input source is named for what it does, not
-for the product: "Nepali – Phonetic" (English), "नेपाली – फोनेटिक" (Nepali).
+the Ctrl+Space switcher. Sajilo's input source carries the product name:
+"Sajilo" (English), "सजिलो" (Nepali), so the name users see in the menu bar
+matches the app they installed. It used to be "Nepali – Phonetic". The
+Nepali language grouping in System Settings (`TISIntendedLanguage` = `ne`)
+already tells users what it does. Its ID,
+`com.gurungdilip.inputmethod.Sajilo.Nepali`, must not change: existing
+installs refer to the input source by that ID.
 _Avoid_: IME, keyboard, input tool
 
 ### Typing
