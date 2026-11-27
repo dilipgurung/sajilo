@@ -484,7 +484,9 @@ the site's inputs build it without deploying; merges to `main` deploy.
 - The download button links to the latest release's `Sajilo-X.Y.Z.pkg`,
   which `build_site.py` looks up through the GitHub API (using `GH_TOKEN`
   when set). If the lookup fails, as when offline, it warns and links to
-  the unversioned `releases/latest/download/Sajilo.pkg` instead.
+  the unversioned `releases/latest/download/Sajilo.pkg` instead. The same
+  rewrite applies to the README's `[Sajilo.pkg](…/latest/download/Sajilo.pkg)`
+  link on the page; the build fails if that link's form changes.
 - `site/index.template.html` holds the hand-written parts: download button,
   unsigned-installer note, the three-line "what it does" strip and the hero
   demo. `site/demo.js` replays typing `namaste` and `sajilo`; its candidate

@@ -149,6 +149,16 @@ def main() -> None:
             fail(f"{TEMPLATE} has no {token} placeholder")
         page = page.replace(token, value)
 
+    # The README links to the fixed-name latest/download/Sajilo.pkg, which
+    # GitHub can't make stale. On the site, point it at the same versioned
+    # file as the button so the download names its version.
+    if version:
+        fixed = f'<a href="{REPO_URL}/releases/latest/download/Sajilo.pkg">Sajilo.pkg</a>'
+        versioned = f'<a href="{html.escape(download_url)}">{html.escape(download_url.rsplit("/", 1)[1])}</a>'
+        if fixed not in page:
+            fail("README.md's download link changed; update the rewrite in build_site.py")
+        page = page.replace(fixed, versioned)
+
     if OUT.exists():
         shutil.rmtree(OUT)
     shutil.copytree(SITE_SRC, OUT, ignore=shutil.ignore_patterns(TEMPLATE, ".DS_Store"))
